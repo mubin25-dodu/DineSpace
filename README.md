@@ -1,1 +1,1 @@
-"# DineSpace" 
+DineSpace is a multi-restaurant management and online ordering platform built with NestJS. It enables restaurants to manage menus, tables, reservations, and orders while allowing customers to browse menus, place orders, and reserve tables through a simple digital experience.

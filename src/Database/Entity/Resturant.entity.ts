@@ -1,5 +1,5 @@
 import { IsBoolean, IsDate, IsEmail, IsNotEmpty, IsOptional, Matches, matches } from "class-validator";
-import { Column, Entity, PrimaryColumnCannotBeNullableError, PrimaryGeneratedColumn } from "typeorm/browser";
+import { Column, CreateDateColumn, Entity, PrimaryColumnCannotBeNullableError, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm/browser";
 
 @Entity()
 export class Resturant{
@@ -28,4 +28,10 @@ export class Resturant{
     closing:string;
     @Column()
     payfirst:boolean; 
+    @Column()
+    @CreateDateColumn()
+    createdat:Date;
+    @Column()
+    @UpdateDateColumn()
+    updated:Date;
 }

@@ -1,20 +1,14 @@
-import { IsNotEmpty, IsOptional, Matches } from "class-validator";
-import { Column, Entity, PrimaryColumn } from "typeorm"
-@Entity()
-export class users{
-    @PrimaryColumn()
+import { IsEmail, IsNotEmpty, IsOptional, Matches } from "class-validator";
+
+export class UserDto{
     @IsNotEmpty()
+    @IsEmail()
     email:string;
-    @Column()
     @IsNotEmpty()
     resturantid:string;
-    @IsNotEmpty()
-    @Column()
      @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/ , 
     { message:"Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number."})
-    @IsNotEmpty()
     password:string;
-    @Column()
     @IsOptional()
     role:string;
 }

@@ -6,6 +6,7 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './user/user.module';
 import { DatabaseModule } from './Database/DbContext.module';
+import { ResturantModule } from './resturant/resturant.module';
 
 @Module({
   imports: [ConfigModule.forRoot({
@@ -20,7 +21,7 @@ import { DatabaseModule } from './Database/DbContext.module';
     database:'DineSpaceDB',
     autoLoadEntities:true,
     synchronize:true
-  }), DatabaseModule, UserModule],
+  }), DatabaseModule, UserModule, ResturantModule],
   
   controllers: [AppController],
   providers: [AppService],

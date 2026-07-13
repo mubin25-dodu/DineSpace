@@ -2,6 +2,7 @@ import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { loginPartialDto } from './DTO/PartialLogin.dto';
 import { RegistrationDto } from './DTO/Registration.Dto';
+import { loginDto } from './DTO/Login.Dto';
 
 @Controller('auth')
 export class AuthController {
@@ -20,9 +21,9 @@ export class AuthController {
   }
 
  @Post()
-  login(@Param('name') name:string , @Param('pass') pass:string){
-    return this.authService.login(name,pass);
-
+  login(@Body() data:loginDto){
+    console.log(data)
+    return this.authService.login(data);
   }
     
 }

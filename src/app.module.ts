@@ -5,8 +5,8 @@ import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './user/user.module';
-import { DatabaseModule } from './Database/DbContext.module';
 import { ResturantModule } from './resturant/resturant.module';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [ConfigModule.forRoot({
@@ -21,7 +21,7 @@ import { ResturantModule } from './resturant/resturant.module';
     database:'DineSpaceDB',
     autoLoadEntities:true,
     synchronize:true
-  }), DatabaseModule, UserModule, ResturantModule],
+  }), UserModule, ResturantModule, MailModule],
   
   controllers: [AppController],
   providers: [AppService],

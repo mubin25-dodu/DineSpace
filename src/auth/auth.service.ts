@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { varification } from '../Database/Entity/verification.entity';
 import { EntityManager, Repository } from 'typeorm';
 import { loginPartialDto } from './DTO/PartialLogin.dto';
 import { Result } from 'src/SharedServices/Result';
@@ -9,16 +8,18 @@ import { RegistrationDto } from './DTO/Registration.Dto';
 import { UserService } from 'src/user/user.service';
 import { ResturantService } from 'src/resturant/resturant.service';
 import { loginDto } from './DTO/Login.Dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { varification } from './Entity/verification.entity';
 
 @Injectable()
 export class AuthService {
-    constructor( private DbContext:EntityManager , private jwt:JwtService  , private userService: UserService , private ResturantService:ResturantService){}
+    constructor( @InjectRepository(varification) private readonly varRepo:Repository<varification> , private jwt:JwtService  , private userService: UserService , private ResturantService:ResturantService){}
 
     async mailverification(data:loginPartialDto) : Promise<Result<loginPartialDto>>{
 
         const result = new Result<loginPartialDto>
         try{
-                const create = await this.DbContext.save(varification , {email:data.email , uid: randomUUID()}); 
+                const create = await this.varRepo.save({email:data.email , uid: randomUUID()}); 
                 if(create){
                     //sending mail methode will be added here 
                     // sendmail();
@@ -41,7 +42,7 @@ export class AuthService {
     async register( uid:string , data:RegistrationDto):Promise<Result<RegistrationDto>>{
         const result = new Result<RegistrationDto>;
         try{
-            const checkuid = await this.DbContext.findOne(varification,{where:{uid:uid}});
+            const checkuid = await this.varRepo.findOne({where:{uid:uid}});
             if(checkuid != null){
                 const checkuser = await this.userService.FIndbyemail(data.email);
                 if(!checkuser.Success){
@@ -57,7 +58,7 @@ export class AuthService {
                     });
                     
                     if(check.Success){
-                        this.DbContext.remove(varification,checkuid)
+                        this.varRepo.remove(checkuid)
                         result.Data = data;
                         result.Message = "User Registered";
                         return result;

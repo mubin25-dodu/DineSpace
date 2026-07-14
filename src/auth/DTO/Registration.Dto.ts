@@ -1,33 +1,32 @@
-import { IsBoolean, IsDate, IsEmail, IsNotEmpty, Matches } from "class-validator";
-import { Column } from "typeorm";
+import { IsBoolean, IsEmail, IsNotEmpty, Matches } from "class-validator";
 
 export class RegistrationDto{
     @IsNotEmpty()
     @IsEmail()
-    email:string;
+    email!:string;
     @IsEmail()
-    Resturantemail:string;
+    Resturantemail!:string;
     @IsNotEmpty()
-    password:string;
+    password!:string;
     @IsNotEmpty()
     role:string = "user";
     @IsNotEmpty()
-    resturantName:string;
+    resturantName!:string;
     @IsNotEmpty()
-    address:string;
+    address!:string;
     @IsNotEmpty()
     @IsBoolean()
-    isopen:boolean;
+    isopen!:boolean;
     @IsNotEmpty()
     @Matches(/^(?:\+?88)?01[3-9]\d{8}$/ , {message:"Invalid phone number (e.g., +8801XXXXXXXX or 01XXXXXXXX)."})
-    phone:string;
+    phone!:string;
     @IsNotEmpty()
     @Matches(/^(?:1[0-2]|0?[1-9]):[0-5]\d\s?(?:[Aa][Mm]|[Pp][Mm])$/, {message: "Time must be in 12-hour format with AM/PM (e.g., 12:40 PM or 09:30 AM)."})
-    opening:string;
+    opening!:string;
     @IsNotEmpty()
     @Matches(/^(?:1[0-2]|0?[1-9]):[0-5]\d\s?(?:[Aa][Mm]|[Pp][Mm])$/, {message: "Time must be in 12-hour format with AM/PM (e.g., 12:40 PM or 09:30 AM)."})
-    closing:string;
+    closing!:string;
     @IsNotEmpty()
     @IsBoolean()
-    payfirst:boolean; 
+    payfirst!:boolean; 
 }

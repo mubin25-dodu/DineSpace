@@ -2,7 +2,7 @@ import { IsBoolean, IsEmail, IsNotEmpty, IsOptional, Matches } from "class-valid
 
 export class ResturantDto {
     @IsOptional()
-    id?:string;
+    ownerid?:string;
     @IsNotEmpty()
     resturantName!: string;
     @IsNotEmpty()
@@ -19,7 +19,7 @@ export class ResturantDto {
     phone!: string;
     @IsEmail()
     @IsNotEmpty()
-    email!: string;
+    Resturantemail!: string;
     @IsNotEmpty()
     @Matches(/^(?:1[0-2]|0?[1-9]):[0-5]\d\s?(?:[Aa][Mm]|[Pp][Mm])$/, {message: "Time must be in 12-hour format with AM/PM (e.g., 12:40 PM or 09:30 AM)."})
     closing!: string;

@@ -1,6 +1,9 @@
-import { IsBoolean, IsEmail, IsNotEmpty, Matches } from "class-validator";
+import { IsBoolean, IsEmail, IsNotEmpty, IsOptional, IsString, Matches } from "class-validator";
 
 export class RegistrationDto{
+    @IsOptional()
+    @IsString()
+    ownerid!:string;
     @IsNotEmpty()
     @IsEmail()
     email!:string;

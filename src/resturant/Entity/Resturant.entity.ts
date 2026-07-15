@@ -1,5 +1,6 @@
 import { IsBoolean, IsEmail, IsNotEmpty, IsOptional, Matches } from "class-validator";
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { users } from "src/user/Entity/users.entity";
+import { Column, CreateDateColumn, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 @Entity("restaurants")
 export class Resturant {
@@ -28,7 +29,7 @@ export class Resturant {
 
     @Column({ type: "varchar", length: 255 })
     @IsEmail()
-    email!: string;
+    Resturantemail!: string;
 
     @Column({ type: "varchar", length: 20 })
     @Matches(/^(?:1[0-2]|0?[1-9]):[0-5]\d\s?(?:[Aa][Mm]|[Pp][Mm])$/, { message: "Time must be in 12-hour format with AM/PM (e.g., 12:40 PM or 09:30 AM)." })
@@ -36,6 +37,13 @@ export class Resturant {
 
     @Column({ type: "boolean", default: false })
     payfirst!: boolean;
+
+    @OneToOne(()=> users , (users)=> users.id , {
+        nullable : false,
+        onDelete:'CASCADE'
+    })
+    @JoinColumn()
+    ownerid!:string;
 
     @CreateDateColumn()
     createdat!: Date;

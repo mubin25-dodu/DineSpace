@@ -42,44 +42,30 @@ export class AuthService {
     async register( uid:string , data:RegistrationDto):Promise<Result<RegistrationDto>>{
         const result = new Result<RegistrationDto>;
         try{
-            const checkuid = await this.varRepo.findOne({where:{uid:uid}});
+            const checkuid = await this.varRepo.findOne({where:{uid:uid , email:data.email}});
             if(checkuid != null){
-                const checkuser = await this.userService.FIndbyemail(data.email);
-                if(!checkuser.Success){
-                    const resturant = await this.ResturantService.addresturant({ resturantName:data.resturantName  , address:data.address , phone:data.phone 
-                        , email:data.Resturantemail , opening:data.opening , closing:data.closing , isopen:data.isopen ,payfirst:data.payfirst});
+                const adduser = await this.userService.adduser(data);
+                if(adduser.Success){
+                    data.ownerid = adduser.Data?.id || '';
+                    const resturant = await this.ResturantService.addresturant(data);
                     if(resturant.Success){
-                    const check = await this.userService.adduser({
-                        email:data.email,
-                        role:"users",
-                        //will hash letter
-                        password:data.password,
-                        resturantid: resturant.Data?.id ?? ""
-                    });
-                    
-                    if(check.Success){
                         this.varRepo.remove(checkuid)
                         result.Data = data;
-                        result.Message = "User Registered";
+                        result.Message = "User and resturant Registered";
                         return result;
                     }
-                    result.Success = false;
-                    result.Message = check.Message;
-                    result.Data = data;
-                    return result;
-                }
                     result.Success = false;
                     result.Message = resturant.Message;
                     result.Data = data;
                     return result;
             }
                     result.Success = false;
-                    result.Message = checkuser.Message;
+                    result.Message = adduser.Message;
                     result.Data = data;
                     return result;
             }else{
                 result.Success= false;
-                result.Message = "Register Your email First"
+                result.Message = "Register Your email First or enter the right email"
                 result.Data = data;
             }
             return result;

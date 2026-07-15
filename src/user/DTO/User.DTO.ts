@@ -1,15 +1,13 @@
 import { IsEmail, IsNotEmpty, IsOptional, Matches, IsString, MinLength, MaxLength } from "class-validator";
 
 export class UserDto{
+    @IsOptional()
+    @IsString()
+    id?:string;
     @IsNotEmpty({ message: "Email is required" })
     @IsEmail({}, { message: "Email must be valid" })
     @IsString()
     email!:string;
-    
-    @IsNotEmpty({ message: "Restaurant ID is required" })
-    @IsString({ message: "Restaurant ID must be a string" })
-    @MinLength(1, { message: "Restaurant ID cannot be empty" })
-    resturantid?:string;
     
     @IsNotEmpty({ message: "Password is required" })
     @IsString({ message: "Password must be a string" })

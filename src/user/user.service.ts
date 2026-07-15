@@ -19,7 +19,7 @@ export class UserService {
         }
         const create = await this.userrepo.save(user); 
         if(create){
-            result.Data = user;
+            result.Data = create;
             result.Message ="User created";
             return result;
         }
@@ -37,7 +37,7 @@ export class UserService {
 
 
     async FIndbyemail(email):Promise<Result<UserDto>>{
-        const result = new Result<users>;
+        const result = new Result<UserDto>;
     try{
         const getuser = await this.userrepo.findOne({where:{email:email}}); 
         if(getuser){

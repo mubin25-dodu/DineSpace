@@ -1,6 +1,6 @@
 import { IsBoolean, IsEmail, IsNotEmpty, IsOptional, Matches } from "class-validator";
 import { users } from "src/user/Entity/users.entity";
-import { Column, CreateDateColumn, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToMany, ManyToOne, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 @Entity("restaurants")
 export class Resturant {
@@ -38,7 +38,7 @@ export class Resturant {
     @Column({ type: "boolean", default: false })
     payfirst!: boolean;
 
-    @OneToOne(()=> users , (users)=> users.id , {
+    @ManyToOne(()=> users , (users)=> users.id , {
         nullable : false,
         onDelete:'CASCADE'
     })

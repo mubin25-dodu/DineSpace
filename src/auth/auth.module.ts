@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { varification } from './Entity/verification.entity';
 import { UserModule } from 'src/user/user.module';
 import { ResturantModule } from 'src/resturant/resturant.module';
+import { MailService } from 'src/mail/mail.service';
 
 @Module({
   imports:[
@@ -18,6 +19,6 @@ import { ResturantModule } from 'src/resturant/resturant.module';
     })
   ],
   controllers: [AuthController],
-  providers: [AuthService],
+  providers: [AuthService , MailService],
 })
 export class AuthModule {}

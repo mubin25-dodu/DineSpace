@@ -10,21 +10,54 @@ import { ResturantService } from 'src/resturant/resturant.service';
 import { loginDto } from './DTO/Login.Dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { varification } from './Entity/verification.entity';
+import { MailService } from 'src/mail/mail.service';
 
 @Injectable()
 export class AuthService {
-    constructor( @InjectRepository(varification) private readonly varRepo:Repository<varification> , private jwt:JwtService  , private userService: UserService , private ResturantService:ResturantService){}
+    constructor( @InjectRepository(varification) private readonly varRepo:Repository<varification> , private jwt:JwtService 
+    ,private readonly mailservice:MailService , private userService: UserService , private ResturantService:ResturantService){}
 
     async mailverification(data:loginPartialDto) : Promise<Result<loginPartialDto>>{
 
         const result = new Result<loginPartialDto>
         try{
+                if(!data.email){
+                    result.Success = false;
+                    result.Message = 'Email is required';
+                    result.Data = data;
+                    return result;
+                }
                 const create = await this.varRepo.save({email:data.email , uid: randomUUID()}); 
                 if(create){
-                    //sending mail methode will be added here 
-                    // sendmail();
-                    result.Message="Mail send";
+                    const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:3000';
+                    const verificationLink = `${frontendUrl}/register?uid=${create.uid}`;
+                    const obj = {
+                            recipients:[data.email],
+                            subject:"Verify Your Mail For DiseSpace",
+                            html:`
+                                <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #222; padding: 24px; background-color: #f6f7fb;">
+                                    <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; padding: 32px; border: 1px solid #e5e7eb;">
+                                        <h2 style="margin-top: 0; color: #111827;">Verify your email address</h2>
+                                        <p>Thank you for requesting registration for DineSpace.</p>
+                                        <p>Click the button below to continue your registration:</p>
+                                        <p style="margin: 32px 0;">
+                                            <a href="${verificationLink}" style="display: inline-block; background-color: #111827; color: #ffffff; text-decoration: none; padding: 12px 20px; border-radius: 8px; font-weight: 600;">Click here to register</a>
+                                        </p>
+                                        <p>If you have not requested this, just ignore this email.</p>
+                                    </div>
+                                </div>
+                            `,
+                            text:[
+                                `Click here to register: ${verificationLink}`,
+                                'If you have not requested this, just ignore this email.'
+                            ],
+                    }
+                    const sendmail =await this.mailservice.sendmail(obj);
+                   
+                   if(!sendmail.Success)
+                    result.Message= sendmail.Message;
                     result.Data = data;
+                    result.Success = false;
                     return result;
                 }
                     result.Message="Could'nt send mail try again";

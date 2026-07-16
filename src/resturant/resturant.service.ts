@@ -13,8 +13,10 @@ export class ResturantService {
     async addresturant(data:ResturantDto):Promise<Result<ResturantDto>>{
             const result = new Result<ResturantDto>;
         try{
-            if((await this.Findbyemail(data.Resturantemail)).Success || (await this.Findbyphone(data.phone)).Success){ 
-                result.Message ="Resturant already exists"; result.Success = false;
+            const check = await this.Findbyemail(data.Resturantemail) &&  await this.Findbyphone(data.phone)
+
+            if(check.Success){ 
+                result.Message = check.Message; result.Success = false;
                  return result;}
             const create = await this.Resreo.save(data); 
             if(create){
@@ -30,13 +32,13 @@ export class ResturantService {
         }
             return result;
         }
-
-        async Findbyemail(email:string):Promise<Result<ResturantDto>>{
+    async Findbyemail(email:string):Promise<Result<ResturantDto>>{
             const result = new Result<ResturantDto>;
         try{
             const create = await this.Resreo.findOne({where:{Resturantemail:email}}); 
             if(create != null){
                 result.Data = create;
+                result.Message = `Resturant with email ${email} Found`;
                 return result;
             }
             result.Success = false;
@@ -48,12 +50,13 @@ export class ResturantService {
         }
             return result;
         }
-        async Findbyphone(phone:string):Promise<Result<ResturantDto>>{
+    async Findbyphone(phone:string):Promise<Result<ResturantDto>>{
             const result = new Result<ResturantDto>;
         try{
             const create = await this.Resreo.findOne({where:{phone:phone}}); 
             if(create != null){
                 result.Data = create;
+                result.Message = `Resturant with Phone ${phone} Found`;
                 return result;
             }
             result.Success = false;

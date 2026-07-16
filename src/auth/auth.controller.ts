@@ -3,26 +3,25 @@ import { AuthService } from './auth.service';
 import { loginPartialDto } from './DTO/PartialLogin.dto';
 import { RegistrationDto } from './DTO/Registration.Dto';
 import { loginDto } from './DTO/Login.Dto';
+import { Result } from 'src/SharedServices/Result';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Get("Verifyemail")
-  verify(@Query() data: loginPartialDto){
-    return this.authService.mailverification(data);
+  async verify(@Query() data: loginPartialDto):Promise<Result<loginPartialDto>>{
+    return await this.authService.mailverification(data);
   }
 
   @Put("register/:uid")
-  registeruser(@Param("uid") uid:string,@Body() registration:RegistrationDto){
-    console.log("uid",uid);
-    console.log("registration",registration);
-    return this.authService.register( uid , registration);
+  async registeruser(@Param("uid") uid:string,@Body() registration:RegistrationDto):Promise<Result<RegistrationDto>>{
+    return await this.authService.register( uid , registration);
   }
 
  @Post()
-  login(@Body() data:loginDto){
+  async login(@Body() data:loginDto):Promise<Result<loginDto>>{
     console.log(data)
-    return this.authService.login(data);
+    return await this.authService.login(data);
   }    
 }

@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { EntityManager, Repository } from 'typeorm';
 import { loginPartialDto } from './DTO/PartialLogin.dto';
 import { Result } from 'src/SharedServices/Result';
 import { randomUUID } from 'crypto';
@@ -11,6 +10,8 @@ import { loginDto } from './DTO/Login.Dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { varification } from './Entity/verification.entity';
 import { MailService } from 'src/mail/mail.service';
+import * as bcrypt from 'bcrypt';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class AuthService {
@@ -54,11 +55,11 @@ export class AuthService {
                     }
                     const sendmail =await this.mailservice.sendmail(obj);
                    
-                   if(!sendmail.Success)
-                    result.Message= sendmail.Message;
+                   if(sendmail.Success){
+                    result.Message = sendmail.Message;
                     result.Data = data;
-                    result.Success = false;
                     return result;
+                   }
                 }
                     result.Message="Could'nt send mail try again";
                     result.Data = data;
@@ -77,21 +78,24 @@ export class AuthService {
         try{
             const checkuid = await this.varRepo.findOne({where:{uid:uid , email:data.email}});
             if(checkuid != null){
+                const hashpassword = await bcrypt.hash(data.password , 10);
+                data.password = hashpassword;
+                
                 const adduser = await this.userService.adduser(data);
                 if(adduser.Success){
+                    this.varRepo.remove(checkuid);
                     data.ownerid = adduser.Data?.id || '';
                     const resturant = await this.ResturantService.addresturant(data);
                     if(resturant.Success){
-                        this.varRepo.remove(checkuid)
                         result.Data = data;
                         result.Message = "User and resturant Registered";
                         return result;
                     }
                     result.Success = false;
-                    result.Message = resturant.Message;
+                    result.Message = "User Created Succesfully Could Not Create the resturate Email already exists";
                     result.Data = data;
                     return result;
-            }
+                }
                     result.Success = false;
                     result.Message = adduser.Message;
                     result.Data = data;
@@ -110,20 +114,30 @@ export class AuthService {
         return result;
     }
 
-    async login(data:loginDto):Promise<Result<loginDto>>{
-        const result = new Result<loginDto>
+    async login(data:loginDto): Promise<string | Result<loginDto>> {
+        const result = new Result<loginDto> 
         try{
            const getuser = await this.userService.FIndbyemail(data.email);
                 if(getuser.Success){
-                    if(getuser.Data?.password !== data.password){
+                    const isvalidpass = await bcrypt.compare(
+                        data.password,
+                        getuser.Data!.password,
+                    );
+
+                    if(!isvalidpass){
                         result.Message = "Wrong Password";
                         result.Success = false;
                         result.Data = data;
                         return result;
                     }
-
+                    const userpayload = {
+                        id:getuser.Data?.id,
+                        email:getuser.Data?.email,
+                        role:getuser.Data?.role
+                    }
+                    
                     result.Message = "Success";
-                    result.Data = data;
+                    result.tocken = this.jwt.sign(userpayload);
                     result.Success = true;
                     return result;
                 }

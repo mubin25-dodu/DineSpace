@@ -13,7 +13,7 @@ export class ResturantService {
     async addresturant(data:ResturantDto):Promise<Result<ResturantDto>>{
             const result = new Result<ResturantDto>;
         try{
-            const check = await this.Findbyemail(data.Resturantemail) &&  await this.Findbyphone(data.phone)
+            const check = await this.Findbyemail(data.Resturantemail) ||  await this.Findbyphone(data.phone);
 
             if(check.Success){ 
                 result.Message = check.Message; result.Success = false;

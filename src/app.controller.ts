@@ -7,7 +7,6 @@ export class AppController {
 
   @Get()
   getHello(): string {
-    console.log(process.env.DBusername);
     return this.appService.getHello();
   }
 }

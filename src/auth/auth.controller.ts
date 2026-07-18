@@ -1,28 +1,36 @@
-import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { loginPartialDto } from './DTO/PartialLogin.dto';
 import { RegistrationDto } from './DTO/Registration.Dto';
+import { loginDto } from './DTO/Login.Dto';
+import { Result } from 'src/SharedServices/Result';
+import { jwtGuard } from './jwtGuard.guard';
+import { RolesGuard } from './Role/Roles.Guard';
+import { Roles } from './Role/Roles.decorator';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Get("Verifyemail")
-  verify(@Query() data: loginPartialDto){
-    return this.authService.mailverification(data);
+  async verify(@Query() data: loginPartialDto):Promise<Result<loginPartialDto>>{
+    return await this.authService.mailverification(data);
   }
 
   @Put("register/:uid")
-  registeruser(@Param("uid") uid:string,@Body() registration:RegistrationDto){
-    console.log("uid",uid);
-    console.log("registration",registration);
-    return this.authService.register( uid , registration);
+  async registeruser(@Param("uid") uid:string,@Body() registration:RegistrationDto):Promise<Result<RegistrationDto>>{
+    return await this.authService.register( uid , registration);
   }
 
  @Post()
-  login(@Param('name') name:string , @Param('pass') pass:string){
-    return this.authService.login(name,pass);
-
+  async login(@Body() data:loginDto): Promise<string | Result<loginDto>> {
+    console.log(data)
+    return await this.authService.login(data);
   }
-    
+  @UseGuards(jwtGuard , RolesGuard)
+  @Roles('user')
+  @Get("check")
+  check(){
+    console.log("hit");
+  }
 }

@@ -5,22 +5,24 @@ import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './user/user.module';
-import { DatabaseModule } from './Database/DbContext.module';
+import { ResturantModule } from './resturant/resturant.module';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [ConfigModule.forRoot({
     isGlobal:true,
-    expandVariables:true
+    expandVariables:true,
+    envFilePath:".env"
   }),AuthModule, TypeOrmModule.forRoot({
     type:'postgres',
     host:'localhost',
     port:5432,
-    username:'postgres',
-    password:'mubindb',
-    database:'DineSpaceDB',
+    username:process.env.DBusername,
+    password:process.env.DBpassword,
+    database:process.env.database,
     autoLoadEntities:true,
     synchronize:true
-  }), DatabaseModule, UserModule],
+  }), UserModule, ResturantModule, MailModule],
   
   controllers: [AppController],
   providers: [AppService],

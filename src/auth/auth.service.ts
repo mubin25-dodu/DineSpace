@@ -1,30 +1,65 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { varification } from '../Database/Entity/verification.entity';
-import { EntityManager, Repository } from 'typeorm';
 import { loginPartialDto } from './DTO/PartialLogin.dto';
 import { Result } from 'src/SharedServices/Result';
 import { randomUUID } from 'crypto';
 import { RegistrationDto } from './DTO/Registration.Dto';
-import { users } from 'src/Database/Entity/users.entity';
 import { UserService } from 'src/user/user.service';
-import { Resturant } from 'src/Database/Entity/Resturant.entity';
+import { ResturantService } from 'src/resturant/resturant.service';
+import { loginDto } from './DTO/Login.Dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { varification } from './Entity/verification.entity';
+import { MailService } from 'src/mail/mail.service';
+import * as bcrypt from 'bcrypt';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class AuthService {
-    constructor( private DbContext:EntityManager , private jwt:JwtService  , private userService: UserService){}
+    constructor( @InjectRepository(varification) private readonly varRepo:Repository<varification> , private jwt:JwtService 
+    ,private readonly mailservice:MailService , private userService: UserService , private ResturantService:ResturantService){}
 
     async mailverification(data:loginPartialDto) : Promise<Result<loginPartialDto>>{
-        //send a mail with the otp 
+
         const result = new Result<loginPartialDto>
         try{
-                const create = await this.DbContext.save(varification , {email:data.email , uid: randomUUID()}); 
-                if(create){
-                    //sending mail methode will be added here 
-                    // sendmail();
-                    result.Message="Mail send";
+                if(!data.email){
+                    result.Success = false;
+                    result.Message = 'Email is required';
                     result.Data = data;
                     return result;
+                }
+                const create = await this.varRepo.save({email:data.email , uid: randomUUID()}); 
+                if(create){
+                    const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:3000';
+                    const verificationLink = `${frontendUrl}/register?uid=${create.uid}`;
+                    const obj = {
+                            recipients:[data.email],
+                            subject:"Verify Your Mail For DiseSpace",
+                            html:`
+                                <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #222; padding: 24px; background-color: #f6f7fb;">
+                                    <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; padding: 32px; border: 1px solid #e5e7eb;">
+                                        <h2 style="margin-top: 0; color: #111827;">Verify your email address</h2>
+                                        <p>Thank you for requesting registration for DineSpace.</p>
+                                        <p>Click the button below to continue your registration:</p>
+                                        <p style="margin: 32px 0;">
+                                            <a href="${verificationLink}" style="display: inline-block; background-color: #111827; color: #ffffff; text-decoration: none; padding: 12px 20px; border-radius: 8px; font-weight: 600;">Click here to register</a>
+                                        </p>
+                                        <p>If you have not requested this, just ignore this email.</p>
+                                    </div>
+                                </div>
+                            `,
+                            text:[
+                                `Click here to register: ${verificationLink}`,
+                                'If you have not requested this, just ignore this email.'
+                            ],
+                    }
+                    const sendmail =await this.mailservice.sendmail(obj);
+                   
+                   if(sendmail.Success){
+                    result.Message = sendmail.Message;
+                    result.Data = data;
+                    return result;
+                   }
                 }
                     result.Message="Could'nt send mail try again";
                     result.Data = data;
@@ -41,41 +76,33 @@ export class AuthService {
     async register( uid:string , data:RegistrationDto):Promise<Result<RegistrationDto>>{
         const result = new Result<RegistrationDto>;
         try{
-            const checkuid = await this.DbContext.findOne(varification,{where:{uid:uid}});
+            const checkuid = await this.varRepo.findOne({where:{uid:uid , email:data.email}});
             if(checkuid != null){
-                const check = await this.DbContext.findOne(users,{where:{email:data.email}});
-                if(!check){
-                    const resturant = await this.DbContext.save(Resturant , {resturantName:data.resturantName  , address:data.address , phone:data.phone 
-                        , email:data.Resturantemail , opening:data.opening , closing:data.closing , isopen:data.isopen ,payfirst:data.payfirst});
-                    if(resturant){
-                    const userpayload = this.DbContext.create(users , {
-                        email:data.email,
-                        role:"users",
-                        //will hash letter
-                        password:data.password,
-                      resturantid: resturant.id
-                    });
-                    const check = await this.userService.adduser(userpayload);
-                    
-                    if(check.Success){
-                        this.DbContext.remove(varification,checkuid)
+                const hashpassword = await bcrypt.hash(data.password , 10);
+                data.password = hashpassword;
+                
+                const adduser = await this.userService.adduser(data);
+                if(adduser.Success){
+                    this.varRepo.remove(checkuid);
+                    data.ownerid = adduser.Data?.id || '';
+                    const resturant = await this.ResturantService.addresturant(data);
+                    if(resturant.Success){
                         result.Data = data;
-                        result.Message = "User Registered";
+                        result.Message = "User and resturant Registered";
                         return result;
                     }
                     result.Success = false;
-                    result.Message = "Could'nt register user";
+                    result.Message = "User Created Succesfully Could Not Create the resturate Email already exists";
                     result.Data = data;
                     return result;
                 }
-            }
                     result.Success = false;
-                    result.Message = "User already exixts";
+                    result.Message = adduser.Message;
                     result.Data = data;
                     return result;
             }else{
                 result.Success= false;
-                result.Message = "Register Your email First"
+                result.Message = "Register Your email First or enter the right email"
                 result.Data = data;
             }
             return result;
@@ -87,7 +114,42 @@ export class AuthService {
         return result;
     }
 
-    login( username:string , password:string){
-        return this.jwt.sign({username:username , password: password});
+    async login(data:loginDto): Promise<string | Result<loginDto>> {
+        const result = new Result<loginDto> 
+        try{
+           const getuser = await this.userService.FIndbyemail(data.email);
+                if(getuser.Success){
+                    const isvalidpass = await bcrypt.compare(
+                        data.password,
+                        getuser.Data!.password,
+                    );
+
+                    if(!isvalidpass){
+                        result.Message = "Wrong Password";
+                        result.Success = false;
+                        result.Data = data;
+                        return result;
+                    }
+                    const userpayload = {
+                        id:getuser.Data?.id,
+                        email:getuser.Data?.email,
+                        role:getuser.Data?.role
+                    }
+                    
+                    result.Message = "Success";
+                    result.tocken = this.jwt.sign(userpayload);
+                    result.Success = true;
+                    return result;
+                }
+                    result.Message="User Not Found";
+                    result.Data = data;
+                    result.Success = false;
+                    return result;
+        }catch(e){
+            result.Success = false;
+            result.Data = data;
+            result.Message = String(e);
+        }
+        return result;
     }
 }

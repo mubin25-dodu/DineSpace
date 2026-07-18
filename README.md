@@ -2,33 +2,35 @@
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
 </p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+# DineSpace - Restaurant Management System
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+A progressive [Node.js](http://nodejs.org) backend for building efficient and scalable restaurant management applications using [NestJS](https://github.com/nestjs/nest) framework with TypeScript.
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+DineSpace is a modern restaurant management system that provides authentication, user management, restaurant operations, and email verification services.
 
 ## Project setup
 
 ```bash
 $ npm install
+```
+
+## Environment Configuration
+
+Create a `.env` file in the root directory with the following variables:
+
+```
+DBusername=postgres
+DBpassword=mubindb
+database=DineSpaceDB
+emailhost=smtp.gmail.com
+emailport=587
+emailpass=your_app_password
+emailuser=your_email@gmail.com
+secretjwtkey=testkey
+PORT=3000
+FRONTEND_URL=http://localhost:3000
 ```
 
 ## Compile and run the project
@@ -44,6 +46,151 @@ $ npm run start:dev
 $ npm run start:prod
 ```
 
+## API Endpoints
+
+### Authentication Endpoints
+
+#### 1. Verify Email
+Send verification email to user before registration.
+
+```
+GET /auth/Verifyemail?email=user@example.com
+```
+
+**Response (Success):**
+```json
+{
+  "Success": true,
+  "Message": "Email sent successfully",
+  "Data": {
+    "email": "user@example.com"
+  }
+}
+```
+
+#### 2. Register User
+Complete user registration with email verification link.
+
+```
+PUT /auth/register/:uid
+```
+
+**Request Body:**
+```json
+{
+  "email": "user@example.com",
+  "password": "SecurePassword123!",
+  "firstName": "John",
+  "lastName": "Doe",
+  "restaurantName": "Taste of Italy",
+  "restaurantLocation": "123 Main St",
+  "restaurantCuisine": "Italian"
+}
+```
+
+**Response (Success):**
+```json
+{
+  "Success": true,
+  "Message": "User and restaurant Registered",
+  "Data": {
+    "email": "user@example.com",
+    "firstName": "John",
+    "lastName": "Doe"
+  }
+}
+```
+
+#### 3. Login
+Authenticate user and get JWT token.
+
+```
+POST /auth
+```
+
+**Request Body:**
+```json
+{
+  "email": "user@example.com",
+  "password": "SecurePassword123!"
+}
+```
+
+**Response (Success):**
+```json
+{
+  "Success": true,
+  "Message": "Success",
+  "tocken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+#### 4. Check Authentication (Protected)
+Verify JWT token validity.
+
+```
+GET /auth/check
+Authorization: Bearer <your_jwt_token>
+```
+
+**Response (Success):**
+```json
+{
+  "userId": "user_id",
+  "email": "user@example.com",
+  "role": "user"
+}
+```
+
+---
+
+## Testing with Sample Data
+
+### Step 1: Verify Email
+```
+GET http://localhost:3000/auth/Verifyemail?email=testuser@example.com
+```
+
+### Step 2: Copy UID from Database
+After email verification, the system generates a UID. Retrieve it from the `varification` table in your database.
+
+### Step 3: Register User
+```
+PUT http://localhost:3000/auth/register/YOUR_UID_HERE
+Content-Type: application/json
+
+{
+  "email": "testuser@example.com",
+  "password": "TestPassword123!",
+  "firstName": "Test",
+  "lastName": "User",
+  "restaurantName": "Test Restaurant",
+  "restaurantLocation": "456 Oak Avenue",
+  "restaurantCuisine": "Asian"
+}
+```
+
+### Step 4: Login
+```
+POST http://localhost:3000/auth
+Content-Type: application/json
+
+{
+  "email": "testuser@example.com",
+  "password": "TestPassword123!"
+}
+```
+
+Save the `tocken` from the response.
+
+### Step 5: Test Protected Endpoint
+```
+GET http://localhost:3000/auth/check
+Authorization: Bearer <paste_your_token_here>
+```
+
+---
+
 ## Run tests
 
 ```bash
@@ -57,42 +204,36 @@ $ npm run test:e2e
 $ npm run test:cov
 ```
 
-## Deployment
+## Project Structure
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+```
+src/
+├── auth/                 # Authentication module (JWT, login, registration)
+├── user/                 # User management module
+├── resturant/            # Restaurant management module
+├── mail/                 # Email service module
+├── SharedServices/       # Shared utilities (Result, Notification)
+├── app.module.ts         # Root module
+├── main.ts               # Application entry point
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## Key Features
 
-## Resources
+- ✅ User Authentication with JWT
+- ✅ Email Verification
+- ✅ Restaurant Management
+- ✅ User Profile Management
+- ✅ Role-based Access Control
+- ✅ Protected Routes with Guards
 
-Check out a few resources that may come in handy when working with NestJS:
+## Database
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+This project uses PostgreSQL. Make sure PostgreSQL is installed and running, and configure the connection details in your `.env` file.
 
 ## License
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+MIT Licensed
+
+## Support
+
+For more information about NestJS, visit the [official documentation](https://docs.nestjs.com).

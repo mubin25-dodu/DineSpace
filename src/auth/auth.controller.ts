@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, Query, Req, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { loginPartialDto } from './DTO/PartialLogin.dto';
 import { RegistrationDto } from './DTO/Registration.Dto';
@@ -28,9 +28,9 @@ export class AuthController {
     return await this.authService.login(data);
   }
   @UseGuards(jwtGuard , RolesGuard)
-  @Roles('user')
   @Get("check")
-  check(){
+  check(@Req() data:any){
     console.log("hit");
+    return data.user;
   }
 }

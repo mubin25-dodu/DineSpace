@@ -92,7 +92,7 @@ export class AuthService {
                         return result;
                     }
                     result.Success = false;
-                    result.Message = "User Created Succesfully Could Not Create the resturate Email already exists";
+                    result.Message = "User Created Succesfully Could Not Create the resturant Email already exists";
                     result.Data = data;
                     return result;
                 }
@@ -135,7 +135,6 @@ export class AuthService {
                         email:getuser.Data?.email,
                         role:getuser.Data?.role
                     }
-                    
                     result.Message = "Success";
                     result.tocken = this.jwt.sign(userpayload);
                     result.Success = true;

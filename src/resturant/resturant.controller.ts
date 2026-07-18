@@ -1,12 +1,18 @@
-import { Body, Controller , Patch, Post, Put } from '@nestjs/common';
+import { Body, Controller , Patch, Post, Put, UseGuards } from '@nestjs/common';
 import { ResturantService } from './resturant.service';
 import { Result } from 'src/SharedServices/Result';
 import { ResturantDto } from './DTO/Resturant.Dto';
+import { jwtGuard } from 'src/auth/jwtGuard.guard';
+import { RolesGuard } from 'src/auth/Role/Roles.Guard';
+import { Roles } from 'src/auth/Role/Roles.decorator';
 
-const userid = "789fe426-45d3-45cf-b621-b5a945aad91c" // usingn it as hard coded now  
+
 @Controller('resturant')
+@UseGuards(jwtGuard,RolesGuard)
+@Roles('owner')
 export class ResturantController {
   constructor(private readonly resturantService: ResturantService) {}
+
 
   @Post("CreateResturant")
   async Addresturant( @Body() data:ResturantDto):Promise<Result<ResturantDto>>{
@@ -15,7 +21,7 @@ export class ResturantController {
 
   // @Patch("UpdateResturant")
   // async Updateresturant( @Body() data:ResturantDto):Promise<Result<ResturantDto>>{
-  //   // return  await this.resturantService.Updateresturant(data);
+  //   return  await this.resturantService.Updateresturant(data);
   // }
 
 }

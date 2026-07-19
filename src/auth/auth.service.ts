@@ -119,9 +119,17 @@ export class AuthService {
         try{
            const getuser = await this.userService.FIndbyemail(data.email);
                 if(getuser.Success){
+                    const storedHash = getuser.Data?.password;
+                    if(!storedHash){
+                        result.Message = "User password not available";
+                        result.Success = false;
+                        result.Data = data;
+                        return result;
+                    }
+
                     const isvalidpass = await bcrypt.compare(
                         data.password,
-                        getuser.Data!.password,
+                        storedHash,
                     );
 
                     if(!isvalidpass){

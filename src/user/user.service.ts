@@ -41,8 +41,10 @@ export class UserService {
     async FIndbyemail(email):Promise<Result<users>>{
         const result = new Result<users>;
     try{
-        const getuser = await this.userrepo.findOne({where:{email:email}, select:{password:false , id:true , email:true
-        }}); 
+        const getuser = await this.userrepo.findOne({
+            where:{email:email},
+            select:{id:true, email:true, password:true, role:true}
+        });
         if(getuser){
             result.Data = getuser;
             return result;

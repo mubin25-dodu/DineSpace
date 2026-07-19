@@ -10,21 +10,32 @@ import { Result } from 'src/SharedServices/Result';
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
-  @Post()
+  @Post("adduser")
   async adduser(@Body() user:UserDto):Promise<Result<UserDto>>{
-    return  await this.userService.adduser(user);
+     const adduser =  await this.userService.adduser(user);
+    if (adduser.Data) {
+      adduser.Data.password = "******";
+    }
+    return adduser;
   }
-  @Get(":data")
-  async Findbyemail(@Param("data") email:string ):Promise<Result<PartialUserDto>>{
-    return await this.userService.FIndbyemail(email);
 
+  @Get("getbyemail:email")
+  async Findbyemail(@Param("email") email:string ):Promise<Result<PartialUserDto>>{
+    const getuser = await this.userService.FIndbyemail(email);
+    if (getuser.Data) {
+      getuser.Data.password = "******";
+    }
+    return getuser;
   }
+
   @Post('UpdateEmail')
   @UseGuards(jwtGuard, RolesGuard)
   @Roles('owner')
   async updateEmail(@Body() updateuser:PartialUserDto , @Req() req:any):Promise<Result<PartialUserDto>>{
-  return await this.userService.UpdateEmail(req.user,updateuser ) ;
+  return await this.userService.UpdateEmail(req.user,updateuser) ;
   }
+
+
   @Post('UpdatePassword')
   @UseGuards(jwtGuard, RolesGuard)
   @Roles('owner')

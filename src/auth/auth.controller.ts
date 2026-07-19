@@ -6,14 +6,16 @@ import { loginDto } from './DTO/Login.Dto';
 import { Result } from 'src/SharedServices/Result';
 import { jwtGuard } from './jwtGuard.guard';
 import { RolesGuard } from './Role/Roles.Guard';
-import { Roles } from './Role/Roles.decorator';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('auth')
+@ApiBearerAuth('bearerAuth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Get("Verifyemail")
-  async verify(@Query() data: loginPartialDto):Promise<Result<loginPartialDto>>{
+  @Post("Verifyemail")
+  async verify(@Body() data: loginPartialDto):Promise<Result<loginPartialDto>>{
     return await this.authService.mailverification(data);
   }
 
@@ -28,6 +30,7 @@ export class AuthController {
     return await this.authService.login(data);
   }
   @UseGuards(jwtGuard , RolesGuard)
+  @ApiBearerAuth('bearerAuth')
   @Get("check")
   check(@Req() data:any){
     console.log("hit");

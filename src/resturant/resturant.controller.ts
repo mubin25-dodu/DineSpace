@@ -5,15 +5,15 @@ import { ResturantDto } from './DTO/Resturant.Dto';
 import { jwtGuard } from 'src/auth/jwtGuard.guard';
 import { RolesGuard } from 'src/auth/Role/Roles.Guard';
 import { Roles } from 'src/auth/Role/Roles.decorator';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
-
+@ApiBearerAuth('bearerAuth')
 @Controller('resturant')
 @UseGuards(jwtGuard,RolesGuard)
 @Roles('owner')
 export class ResturantController {
   constructor(private readonly resturantService: ResturantService) {}
-
-
+  
   @Post("CreateResturant")
   async Addresturant( @Body() data:ResturantDto):Promise<Result<ResturantDto>>{
     return  await this.resturantService.addresturant(data);

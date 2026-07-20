@@ -75,7 +75,7 @@ export class ResturantService {
             const result = new Result<ResturantDto>;
         try{
             const check = await this.Findbyemail(data.Resturantemail) ||  await this.Findbyphone(data.phone);
-
+            
             if(check.Success){ 
                 result.Message = check.Message +"try another one";
                 result.Success = false;

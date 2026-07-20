@@ -144,6 +144,174 @@ Authorization: Bearer <your_jwt_token>
 
 ---
 
+## User Module Endpoints
+
+#### 1. Add New User
+Create a new user in the system.
+
+```
+POST /user/adduser
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "email": "newuser@example.com",
+  "password": "SecurePass123!"
+}
+```
+
+**Password Requirements:**
+- Minimum 8 characters
+- Maximum 50 characters
+- Must contain at least one uppercase letter
+- Must contain at least one lowercase letter
+- Must contain at least one number
+- Must contain at least one special character (@$!%*?&)
+
+**Response (Success):**
+```json
+{
+  "Success": true,
+  "Message": "User added successfully",
+  "Data": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "email": "newuser@example.com",
+    "password": "******",
+    "role": "owner"
+  }
+}
+```
+
+**Response (Error - Invalid Email):**
+```json
+{
+  "Success": false,
+  "Message": "Email must be valid",
+  "Data": null
+}
+```
+
+#### 2. Find User by Email
+Retrieve user information by email address.
+
+```
+GET /user/getbyemail/:email
+```
+
+**Example:**
+```
+GET /user/getbyemail:user@example.com
+```
+
+**Response (Success):**
+```json
+{
+  "Success": true,
+  "Message": "User found",
+  "Data": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "email": "user@example.com",
+    "password": "******",
+    "role": "owner"
+  }
+}
+```
+
+**Response (Not Found):**
+```json
+{
+  "Success": false,
+  "Message": "User not found",
+  "Data": null
+}
+```
+
+#### 3. Update Email (Protected)
+Update the authenticated user's email address.
+
+```
+POST /user/UpdateEmail
+Authorization: Bearer <your_jwt_token>
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "email": "newemail@example.com"
+}
+```
+
+**Response (Success):**
+```json
+{
+  "Success": true,
+  "Message": "Email updated successfully",
+  "Data": {
+    "email": "newemail@example.com",
+    "password": "******"
+  }
+}
+```
+
+**Response (Error - Unauthorized):**
+```json
+{
+  "Success": false,
+  "Message": "Unauthorized",
+  "Data": null
+}
+```
+
+#### 4. Update Password (Protected)
+Update the authenticated user's password.
+
+```
+POST /user/UpdatePassword
+Authorization: Bearer <your_jwt_token>
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "password": "NewSecurePassword123!"
+}
+```
+
+**Password Requirements:**
+- Minimum 8 characters
+- Maximum 50 characters
+- Must contain at least one uppercase letter
+- Must contain at least one lowercase letter
+- Must contain at least one number
+- Must contain at least one special character (@$!%*?&)
+
+**Response (Success):**
+```json
+{
+  "Success": true,
+  "Message": "Password updated successfully",
+  "Data": {
+    "email": "user@example.com",
+    "password": "******"
+  }
+}
+```
+
+**Response (Error - Invalid Password):**
+```json
+{
+  "Success": false,
+  "Message": "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&)",
+  "Data": null
+}
+```
+
+---
+
 ## Testing with Sample Data
 
 ### Step 1: Verify Email
@@ -187,6 +355,96 @@ Save the `tocken` from the response.
 ```
 GET http://localhost:3000/auth/check
 Authorization: Bearer <paste_your_token_here>
+```
+
+### Step 6: Add New User
+```
+POST http://localhost:3000/user/adduser
+Content-Type: application/json
+
+{
+  "email": "anotheruser@example.com",
+  "password": "AnotherPass123!"
+}
+```
+
+**Response:**
+```json
+{
+  "Success": true,
+  "Message": "User added successfully",
+  "Data": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "email": "anotheruser@example.com",
+    "password": "******",
+    "role": "owner"
+  }
+}
+```
+
+### Step 7: Find User by Email
+```
+GET http://localhost:3000/user/getbyemail:testuser@example.com
+```
+
+**Response:**
+```json
+{
+  "Success": true,
+  "Message": "User found",
+  "Data": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "email": "testuser@example.com",
+    "password": "******",
+    "role": "owner"
+  }
+}
+```
+
+### Step 8: Update Email (Protected)
+```
+POST http://localhost:3000/user/UpdateEmail
+Authorization: Bearer <paste_your_token_here>
+Content-Type: application/json
+
+{
+  "email": "updatedemail@example.com"
+}
+```
+
+**Response:**
+```json
+{
+  "Success": true,
+  "Message": "Email updated successfully",
+  "Data": {
+    "email": "updatedemail@example.com",
+    "password": "******"
+  }
+}
+```
+
+### Step 9: Update Password (Protected)
+```
+POST http://localhost:3000/user/UpdatePassword
+Authorization: Bearer <paste_your_token_here>
+Content-Type: application/json
+
+{
+  "password": "NewSecurePassword456!"
+}
+```
+
+**Response:**
+```json
+{
+  "Success": true,
+  "Message": "Password updated successfully",
+  "Data": {
+    "email": "testuser@example.com",
+    "password": "******"
+  }
+}
 ```
 
 ---

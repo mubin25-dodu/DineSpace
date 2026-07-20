@@ -1,4 +1,4 @@
-import { Body, Controller , Patch, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller , Patch, Post, Put, Req, UseGuards } from '@nestjs/common';
 import { ResturantService } from './resturant.service';
 import { Result } from 'src/SharedServices/Result';
 import { ResturantDto } from './DTO/Resturant.Dto';
@@ -19,9 +19,9 @@ export class ResturantController {
     return  await this.resturantService.addresturant(data);
   }
 
-  // @Patch("UpdateResturant")
-  // async Updateresturant( @Body() data:ResturantDto):Promise<Result<ResturantDto>>{
-  //   return  await this.resturantService.Updateresturant(data);
-  // }
+  @Patch("UpdateEmail")
+  async Updateresturant( @Req() req:any , @Body() data:ResturantDto):Promise<Result<ResturantDto>>{
+    return  await this.resturantService.Updateresturant(req.user,data);
+  }
 
 }

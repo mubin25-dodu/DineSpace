@@ -7,6 +7,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './user/user.module';
 import { ResturantModule } from './resturant/resturant.module';
 import { MailModule } from './mail/mail.module';
+import { VerificationRequestModule } from './verification-request/verification-request.module';
 
 @Module({
   imports: [ConfigModule.forRoot({
@@ -22,7 +23,7 @@ import { MailModule } from './mail/mail.module';
     database:process.env.database,
     autoLoadEntities:true,
     synchronize:true
-  }), UserModule, ResturantModule, MailModule],
+  }), UserModule, ResturantModule, MailModule, VerificationRequestModule],
   
   controllers: [AppController],
   providers: [AppService],

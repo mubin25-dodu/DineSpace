@@ -7,9 +7,9 @@ import { Result } from 'src/SharedServices/Result';
 import { jwtGuard } from './jwtGuard.guard';
 import { RolesGuard } from './Role/Roles.Guard';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Roles } from './Role/Roles.decorator';
 
-@ApiTags('auth')
-@ApiBearerAuth('bearerAuth')
+
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -21,16 +21,21 @@ export class AuthController {
 
   @Put("register/:uid")
   async registeruser(@Param("uid") uid:string,@Body() registration:RegistrationDto):Promise<Result<RegistrationDto>>{
-    return await this.authService.register( uid , registration);
+    const register = await this.authService.register( uid , registration);
+    if(register.Data?.password){
+      register.Data.password = "#####"
+    }
+    return register ;
   }
 
- @Post()
+ @Post("login")
   async login(@Body() data:loginDto): Promise<string | Result<loginDto>> {
     console.log(data)
     return await this.authService.login(data);
   }
   @UseGuards(jwtGuard , RolesGuard)
   @ApiBearerAuth('bearerAuth')
+  @Roles("owner")
   @Get("check")
   check(@Req() data:any){
     console.log("hit");

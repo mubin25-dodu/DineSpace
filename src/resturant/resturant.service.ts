@@ -16,8 +16,10 @@ export class ResturantService {
             const check = await this.Findbyemail(data.Resturantemail) ||  await this.Findbyphone(data.phone);
 
             if(check.Success){ 
-                result.Message = check.Message; result.Success = false;
-                 return result;}
+                result.Message = check.Message; 
+                result.Success = false;
+                return result;
+            }
             const create = await this.Resreo.save(data); 
             if(create){
                 result.Data = create;
@@ -57,6 +59,32 @@ export class ResturantService {
             if(create != null){
                 result.Data = create;
                 result.Message = `Resturant with Phone ${phone} Found`;
+                return result;
+            }
+            result.Success = false;
+        }
+        catch(e){
+            result.Message = String(e);
+            result.Success = false;
+    
+        }
+            return result;
+        }
+
+    async Updateresturant ( user:any , data:ResturantDto):Promise<Result<ResturantDto>>{
+            const result = new Result<ResturantDto>;
+        try{
+            const check = await this.Findbyemail(data.Resturantemail) ||  await this.Findbyphone(data.phone);
+
+            if(check.Success){ 
+                result.Message = check.Message +"try another one";
+                result.Success = false;
+                return result;
+            }
+
+            const create = await this.Resreo.save(data); 
+            if(create){
+                result.Data = create;
                 return result;
             }
             result.Success = false;

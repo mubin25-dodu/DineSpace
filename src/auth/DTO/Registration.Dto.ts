@@ -14,7 +14,7 @@ export class RegistrationDto{
     { message: "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&)" })
     password!:string;
     @IsNotEmpty()
-    role:string = "user";
+    role?:string;
     @IsNotEmpty()
     resturantName!:string;
     @IsNotEmpty()

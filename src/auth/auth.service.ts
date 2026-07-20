@@ -31,7 +31,7 @@ export class AuthService {
                 const create = await this.varRepo.save({email:data.email , uid: randomUUID()}); 
                 if(create){
                     const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:3000';
-                    const verificationLink = `${frontendUrl}/register?uid=${create.uid}`;
+                    const verificationLink = `${frontendUrl}/auth/register/${create.uid}`;
                     const obj = {
                             recipients:[data.email],
                             subject:"Verify Your Mail For DiseSpace",
@@ -44,6 +44,7 @@ export class AuthService {
                                         <p style="margin: 32px 0;">
                                             <a href="${verificationLink}" style="display: inline-block; background-color: #111827; color: #ffffff; text-decoration: none; padding: 12px 20px; border-radius: 8px; font-weight: 600;">Click here to register</a>
                                         </p>
+                                        ${verificationLink}
                                         <p>If you have not requested this, just ignore this email.</p>
                                     </div>
                                 </div>
@@ -53,13 +54,8 @@ export class AuthService {
                                 'If you have not requested this, just ignore this email.'
                             ],
                     }
-                    const sendmail =await this.mailservice.sendmail(obj);
+                    await this.mailservice.sendmail(obj);
                    
-                   if(sendmail.Success){
-                    result.Message = sendmail.Message;
-                    result.Data = data;
-                    return result;
-                   }
                 }
                     result.Message="Could'nt send mail try again";
                     result.Data = data;

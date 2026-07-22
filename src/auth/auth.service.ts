@@ -55,7 +55,9 @@ export class AuthService {
                             ],
                     }
                     await this.mailservice.sendmail(obj);
-                   
+                   result.Message="mail send...";
+                    result.Data = data;
+                    return result;
                 }
                     result.Message="Could'nt send mail try again";
                     result.Data = data;

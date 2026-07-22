@@ -1,9 +1,11 @@
 import { IsBoolean, IsEmail, IsNotEmpty, IsOptional, Matches } from "class-validator";
+import { Files } from "src/files/Entity/Files.Entity";
 import { users } from "src/user/Entity/users.entity";
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToMany, ManyToOne, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 @Entity("restaurants")
 export class Resturant {
+    
     @PrimaryGeneratedColumn("uuid")
     id!: string;
 
@@ -38,12 +40,18 @@ export class Resturant {
     @Column({ type: "boolean", default: false })
     payfirst!: boolean;
 
-    @ManyToOne(()=> users , (users)=> users.id , {
-        nullable : false,
-        onDelete:'CASCADE'
+    @Column({ type: "uuid", nullable: false })
+    ownerid!: string;
+
+    @ManyToOne(() => users, (user) => user.resturants, {
+        nullable: false,
+        onDelete: 'CASCADE'
     })
-    @JoinColumn()
-    ownerid!:string;
+    @JoinColumn({ name: 'ownerid' })
+    owner!: users;
+
+    @OneToMany(() => Files, (file) => file.RestaurantId)
+    files?: Files[];
 
     @CreateDateColumn()
     createdat!: Date;

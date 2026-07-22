@@ -3,7 +3,7 @@ import { ResturantDto } from './DTO/Resturant.Dto';
 import { Result } from 'src/SharedServices/Result';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Resturant } from './Entity/Resturant.entity';
-import { Repository } from 'typeorm';
+import { Like, Or, Repository } from 'typeorm';
 
 @Injectable()
 export class ResturantService {
@@ -52,6 +52,7 @@ export class ResturantService {
         }
             return result;
         }
+
     async Findbyphone(phone:string):Promise<Result<ResturantDto>>{
             const result = new Result<ResturantDto>;
         try{
@@ -83,7 +84,7 @@ export class ResturantService {
             }
 
             const create = await this.Resreo.save(data); 
-            if(create){
+            if(create){ 
                 result.Data = create;
                 return result;
             }
@@ -96,4 +97,27 @@ export class ResturantService {
         }
             return result;
         }
+
+    async search(term:string):Promise<Result<ResturantDto[]>>{
+            const result = new Result<ResturantDto[]>;
+        try{
+            const create = await this.Resreo.find({where: [
+                { resturantName: Like(`%${term}%`) },
+                { Resturantemail: Like(`%${term}%`) },
+                { address: Like(`%${term}%`) }
+            ]});
+            if(create != null){
+                result.Data = create;
+                result.Message = `Resturant with email ${term} Found`;
+                return result;
+            }
+            result.Success = false;
+        }
+        catch(e){
+            result.Message = String(e);
+            result.Success = false;
+    
+        }
+            return result;
+    }
 }

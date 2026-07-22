@@ -20,5 +20,4 @@ export class UserDto{
     { message: "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&)" })
     @ApiProperty()
     password!:string;
-
 }

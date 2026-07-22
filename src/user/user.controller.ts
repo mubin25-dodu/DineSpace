@@ -21,7 +21,7 @@ export class UserController {
     return adduser;
   }
 
-  @Get("getbyemail:email")
+  @Get("getbyemail/:email")
   async Findbyemail(@Param("email") email:string ):Promise<Result<PartialUserDto>>{
     const getuser = await this.userService.FIndbyemail(email);
     if (getuser.Data) {

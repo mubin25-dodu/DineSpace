@@ -8,6 +8,8 @@ import { UserModule } from './user/user.module';
 import { ResturantModule } from './resturant/resturant.module';
 import { MailModule } from './mail/mail.module';
 import { VerificationRequestModule } from './verification-request/verification-request.module';
+import { FilesModule } from './files/files.module';
+import { MenuModule } from './menu/menu.module';
 
 @Module({
   imports: [ConfigModule.forRoot({
@@ -23,7 +25,7 @@ import { VerificationRequestModule } from './verification-request/verification-r
     database:process.env.database,
     autoLoadEntities:true,
     synchronize:true
-  }), UserModule, ResturantModule, MailModule, VerificationRequestModule],
+  }), UserModule, ResturantModule, MailModule, VerificationRequestModule, FilesModule, MenuModule],
   
   controllers: [AppController],
   providers: [AppService],

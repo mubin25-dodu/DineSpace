@@ -46,7 +46,8 @@ export class UserService {
     try{
         const getuser = await this.userrepo.findOne({
             where:{email:email},
-            select:{id:true, email:true, password:true, role:true}
+            select:{id:true, email:true, password:true, role:true} , 
+            relations:{resturants:true}
         });
         if(getuser){
             result.Data = getuser;

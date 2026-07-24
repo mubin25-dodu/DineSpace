@@ -16,14 +16,16 @@ import { TablesModule } from './tables/tables.module';
   imports: [ConfigModule.forRoot({
     isGlobal:true,
     expandVariables:true,
-    envFilePath:".env"
+    envFilePath:'.env'
   }),AuthModule, TypeOrmModule.forRoot({
     type:'postgres',
-    host:'localhost',
-    port:5432,
-    username:process.env.DBusername,
-    password:process.env.DBpassword,
-    database:process.env.database,
+    host: process.env.DBHost ?? 'localhost',
+    port: Number(process.env.DBport ?? 5432),
+    username: process.env.DBusername,
+    password: process.env.DBpassword,
+    database: process.env.database,
+    ssl:{rejectUnauthorized: false} ,
+    extra: { rejectUnauthorized: false },
     autoLoadEntities:true,
     synchronize:true
   }), UserModule, ResturantModule, MailModule, VerificationRequestModule, FilesModule, MenuModule, TablesModule],

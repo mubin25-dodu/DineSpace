@@ -6,7 +6,7 @@ export class menu{
     @PrimaryGeneratedColumn('uuid')
     id!:string;
 
-    @OneToMany(()=> Files , (file)=> file.MenuId)
-    files?:Files[];
+    @OneToMany(() => Files, (file) => file.Menu)
+    files?: Files[];
 
 }

@@ -4,6 +4,9 @@ import { IsBoolean, IsEmail, IsNotEmpty, IsOptional, Matches } from "class-valid
 export class ResturantDto {
     @IsOptional()
     @ApiProperty()
+    id?:string;
+    @IsOptional()
+    @ApiProperty()
     ownerid?:string;
     @ApiProperty()
     @IsNotEmpty()

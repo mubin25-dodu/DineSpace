@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller , Get, Param, ParseFilePipeBuilder, Patch, Post, Put, Req, UploadedFiles, UseGuards, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Body, Controller , Delete, Get, Param, ParseFilePipeBuilder, Patch, Post, Put, Req, UploadedFiles, UseGuards, UseInterceptors } from '@nestjs/common';
 import { ResturantService } from './resturant.service';
 import { Result } from 'src/SharedServices/Result';
 import { ResturantDto } from './DTO/Resturant.Dto';
@@ -10,37 +10,49 @@ import { diskStorage } from 'multer';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { fileEnum } from 'src/files/Enum/files.Enum';
 import { Resturant } from './Entity/Resturant.entity';
+import { PartialResturantDto } from './DTO/ParticalResturant.Dto';
 
 @Controller('resturant')
 
 export class ResturantController {
   constructor(private readonly resturantService: ResturantService) {} 
   @ApiBearerAuth('bearerAuth')
+  @UseGuards(jwtGuard,RolesGuard)
   @Roles('owner')
   @Post("CreateResturant")
-  async Addresturant( @Body() data:ResturantDto):Promise<Result<ResturantDto>>{
+  async Addresturant(@Req() req:any, @Body() data:ResturantDto):Promise<Result<ResturantDto>>{
+    // console.log(req)
+    data.ownerid = req.user.userId;
     return  await this.resturantService.addresturant(data);
   }
 
   @UseGuards(jwtGuard,RolesGuard)
   @ApiBearerAuth('bearerAuth')
   @Roles('owner')
-  @Patch("UpdateEmail")
-  async Updateresturant( @Req() req:any , @Body() data:ResturantDto):Promise<Result<ResturantDto>>{
-    return  await this.resturantService.Updateresturant(req.user,data);
+  @Patch("UpdateResturant")
+  async Updateresturant( @Req() req:any , @Body() data:PartialResturantDto):Promise<Result<PartialResturantDto>>{
+    data.ownerid = req.user.userId;
+    return  await this.resturantService.Updateresturant(data);
   }
 
   //anyone can search with term(name email phone address)
   @Get("searchResturants/:term")
-  search(@Param("term") term:string):Promise<Result<ResturantDto[]>>{
-    return this.resturantService.search(term);
+  async search(@Param("term") term:string):Promise<Result<Resturant[]>>{
+    const result = await this.resturantService.search(term);
+    if (result.Data) {
+      result.Data.forEach(resturant => {
+        if (resturant.owner && 'password' in resturant.owner) {
+          resturant.owner.password = '*****';
+        }
+      });
+    }
+    return result;
   }
-
 
   @UseGuards(jwtGuard,RolesGuard)
   @ApiBearerAuth('bearerAuth')
   @Roles('owner')
-  @Put("uploadImages/:id")
+  @Post("uploadImages/:id")
   @UseInterceptors(FilesInterceptor('file' , 2 ,{
     storage: diskStorage({
       destination:'./uploads',
@@ -74,5 +86,13 @@ export class ResturantController {
     
     return await this.resturantService.Uploadfiles(file , id , fileEnum.Resturant , req.user.userId);
   }
+    @ApiBearerAuth('bearerAuth')
+    @UseGuards(jwtGuard, RolesGuard)
+    @Roles('owner')
+    @Delete("DeleteUser/:Id")
+    deleteuser(@Param("Id") Id:string , @Req() req:any):Promise<Result<null>>{
+      return this.resturantService.deleteresturant(req.user , Id);
+  
+    }
 
 }

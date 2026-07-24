@@ -169,4 +169,23 @@ export class UserService {
 
     }
     
+    async deleteuser(user:any):Promise<Result<null>>{
+        const result = new Result<null>;
+    try{
+        const deleteuser = await this.userrepo.delete(user.userId);
+        if(deleteuser){
+            result.Message = "user deleted";
+            return result;
+        }
+        result.Message ="User not found";
+        result.Success = false;
+    }
+    catch(e){
+        result.Message = String(e);
+        result.Success = false;
+
+    }
+        return result;
+    }
+    
 }

@@ -1,6 +1,6 @@
 //for registrationdto
 {
-  "email": "admin@dinespace.com",
+  "email": "mubin9516@gmail.com",
   "Resturantemail": "dinespace@restaurant.com",
   "password": "Admin123!@",
   "role": "owner",
@@ -52,3 +52,64 @@
   "closing": "12:00 AM",
   "payfirst": false
 }
+
+
+//// creat resturant demo data
+
+[
+  {
+    "ownerid": "1",
+    "resturantName": "Spice Garden",
+    "address": "House 12, Road 5, Dhanmondi, Dhaka",
+    "isopen": true,
+    "opening": "09:00 AM",
+    "phone": "01712345678",
+    "Resturantemail": "contact@spicegarden.com",
+    "closing": "10:00 PM",
+    "payfirst": false
+  },
+  {
+    "ownerid": "2",
+    "resturantName": "Burger House",
+    "address": "Mirpur 10, Dhaka",
+    "isopen": true,
+    "opening": "10:30 AM",
+    "phone": "01812345678",
+    "Resturantemail": "burgerhouse@gmail.com",
+    "closing": "11:30 PM",
+    "payfirst": true
+  },
+  {
+    "ownerid": "3",
+    "resturantName": "Ocean Seafood",
+    "address": "Gulshan Avenue, Dhaka",
+    "isopen": false,
+    "opening": "11:00 AM",
+    "phone": "+8801912345678",
+    "Resturantemail": "info@oceanseafood.com",
+    "closing": "09:30 PM",
+    "payfirst": true
+  },
+  {
+    "ownerid": "4",
+    "resturantName": "Pizza Palace",
+    "address": "Uttara Sector 7, Dhaka",
+    "isopen": true,
+    "opening": "08:30 AM",
+    "phone": "01698765432",
+    "Resturantemail": "support@pizzapalace.com",
+    "closing": "11:00 PM",
+    "payfirst": false
+  },
+  {
+    "ownerid": "5",
+    "resturantName": "Cafe Aroma",
+    "address": "Banani 11, Dhaka",
+    "isopen": true,
+    "opening": "07:30 AM",
+    "phone": "+8801512345678",
+    "Resturantemail": "hello@cafearoma.com",
+    "closing": "10:30 PM",
+    "payfirst": false
+  }
+]

@@ -36,7 +36,7 @@ export class Files {
     @Column({ type: "uuid", nullable: true })
     RestaurantId?: string;
 
-    @ManyToOne(() => Resturant, (restaurant) => restaurant.id, {
+    @ManyToOne(() => Resturant, (restaurant) => restaurant.files, {
         nullable: true,
         onDelete: "CASCADE",
     })
@@ -46,7 +46,7 @@ export class Files {
     @Column({ type: "uuid", nullable: true })
     MenuId?: string;
 
-    @ManyToOne(()=> menu , (menu)=>menu.id)
-    @JoinColumn({name:"MenuID"})
-    Menu?:menu;
+    @ManyToOne(() => menu, (menu) => menu.files)
+    @JoinColumn({ name: "MenuId" })
+    Menu?: menu;
 }

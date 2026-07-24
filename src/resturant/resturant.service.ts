@@ -5,130 +5,146 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Resturant } from './Entity/Resturant.entity';
 import { Like, Or, Repository } from 'typeorm';
 import { FilesService } from 'src/files/files.service';
-import { Files } from 'src/files/Entity/Files.Entity';
-import { Express } from 'express';
 import { fileEnum } from 'src/files/Enum/files.Enum';
 import { FilesDto } from 'src/files/DTO/Files.Dto';
+import { PartialResturantDto } from './DTO/ParticalResturant.Dto';
 
 @Injectable()
 export class ResturantService {
 
-    constructor(@InjectRepository(Resturant) private readonly Resreo:Repository<Resturant> , private fileservice:FilesService){}
+    constructor(@InjectRepository(Resturant) private readonly Resreo: Repository<Resturant>, private fileservice: FilesService) { }
 
-    async addresturant(data:ResturantDto):Promise<Result<ResturantDto>>{
-            const result = new Result<ResturantDto>;
-        try{
-            const check = await this.Findbyemail(data.Resturantemail) ||  await this.Findbyphone(data.phone);
+    async addresturant(data: ResturantDto): Promise<Result<ResturantDto>> {
+        const result = new Result<ResturantDto>;
+        try {
+            const check = await this.Findbyemail(data.Resturantemail) || await this.Findbyphone(data.phone);
 
-            if(check.Success){ 
-                result.Message = check.Message; 
+            if (check.Success) {
+                result.Message = check.Message;
                 result.Success = false;
                 return result;
             }
-            const create = await this.Resreo.save(data); 
-            if(create){
+            const create = await this.Resreo.save(data);
+            if (create) {
                 result.Data = create;
                 return result;
             }
             result.Success = false;
         }
-        catch(e){
+        catch (e) {
             result.Message = String(e);
             result.Success = false;
-    
+
         }
-            return result;
-        }
-    async Findbyemail(email:string):Promise<Result<ResturantDto>>{
-            const result = new Result<ResturantDto>;
-        try{
-            const create = await this.Resreo.findOne({where:{Resturantemail:email}}); 
-            if(create != null){
+        return result;
+    }
+    async Findbyemail(email: string): Promise<Result<ResturantDto>> {
+        const result = new Result<ResturantDto>;
+        try {
+            const create = await this.Resreo.findOne({ where: { Resturantemail: email } });
+            if (create != null) {
                 result.Data = create;
                 result.Message = `Resturant with email ${email} Found`;
                 return result;
             }
             result.Success = false;
         }
-        catch(e){
+        catch (e) {
             result.Message = String(e);
             result.Success = false;
-    
-        }
-            return result;
-        }
 
-    async Findbyphone(phone:string):Promise<Result<ResturantDto>>{
-            const result = new Result<ResturantDto>;
-        try{
-            const create = await this.Resreo.findOne({where:{phone:phone}}); 
-            if(create != null){
+        }
+        return result;
+    }
+
+    async Findbyphone(phone: string): Promise<Result<ResturantDto>> {
+        const result = new Result<ResturantDto>;
+        try {
+            const create = await this.Resreo.findOne({ where: { phone: phone } });
+            if (create != null) {
                 result.Data = create;
                 result.Message = `Resturant with Phone ${phone} Found`;
                 return result;
             }
             result.Success = false;
         }
-        catch(e){
+        catch (e) {
             result.Message = String(e);
             result.Success = false;
-    
-        }
-            return result;
-        }
 
-    async Updateresturant ( user:any , data:ResturantDto):Promise<Result<ResturantDto>>{
-            const result = new Result<ResturantDto>;
-        try{
-            const check = await this.Findbyemail(data.Resturantemail) ||  await this.Findbyphone(data.phone);
-            
-            if(check.Success){ 
-                result.Message = check.Message +"try another one";
+        }
+        return result;
+    }
+
+    async Updateresturant(data: PartialResturantDto): Promise<Result<Resturant>> {
+        const result = new Result<Resturant>;
+        try {
+            // const check = await this.Findbyemail(data.Resturantemail) || await this.Findbyphone(data.phone);
+
+            // if (check.Success) {
+            //     result.Message = check.Message + "try another one";
+            //     result.Success = false;
+            //     return result;
+            // }
+
+            if(data.Resturantemail!== undefined || data.phone !== undefined){
+                 result.Message ="Can not update email and Phone At this moment";
                 result.Success = false;
                 return result;
             }
+            const getresturent = await this.FindbyID(data.id!);
+            if (!getresturent.Success || !getresturent.Data) {
+                result.Success = false;
+                result.Message = "Restaurant not found";
+                return result;
+            }
 
-            const create = await this.Resreo.save(data); 
-            if(create){ 
+            Object.assign(getresturent.Data , data)
+            const create = await this.Resreo.save(getresturent.Data);
+            if (create) {
                 result.Data = create;
                 return result;
             }
             result.Success = false;
         }
-        catch(e){
+        catch (e) {
             result.Message = String(e);
             result.Success = false;
-    
-        }
-            return result;
-        }
 
-    async search(term:string):Promise<Result<ResturantDto[]>>{
-            const result = new Result<ResturantDto[]>;
-        try{
-            const create = await this.Resreo.find({where: [
-                { resturantName: Like(`%${term}%`) },
-                { Resturantemail: Like(`%${term}%`) },
-                { address: Like(`%${term}%`) }
-            ]});
-            if(create != null){
-                result.Data = create;
-                result.Message = `Resturant with email ${term} Found`;
-                return result;
-            }
-            result.Success = false;
         }
-        catch(e){
-            result.Message = String(e);
-            result.Success = false;
-    
-        }
-            return result;
+        return result;
     }
 
-    async Uploadfiles(file:Express.Multer.File[] , id:string , uploadfor:fileEnum , userId:any):Promise<Result<Resturant>>{
-           const result = new Result<Resturant>;
-        try{
+    async search(term: string): Promise<Result<Resturant[]>> {
+        const result = new Result<Resturant[]>;
+        try {
+            const search = await this.Resreo.find({
+                where: [
+                    { resturantName: Like(`%${term}%`) },
+                    { Resturantemail: Like(`%${term}%`) },
+                    { address: Like(`%${term}%`) } ,
+
+                ],
+                relations:{owner:true , tables:true}
+            });
+            if (search != null) {
+                result.Data = search;
+                result.Message = `${search.length} Resturents Found`;
+                return result;
+            }
+            result.Success = false;
+        }
+        catch (e) {
+            result.Message = String(e);
+            result.Success = false;
+
+        }
+        return result;
+    }
+
+    async Uploadfiles(file: Express.Multer.File[], id: string, uploadfor: fileEnum, userId: any): Promise<Result<Resturant>> {
+        const result = new Result<Resturant>;
+        try {
             const fileDtos: FilesDto[] = file.map(file => ({
                 FileName: file.filename,
                 OriginalName: file.originalname,
@@ -139,19 +155,77 @@ export class ResturantService {
                 MenuId: uploadfor == fileEnum.Menu ? id : undefined,
             }));
             const save = await this.fileservice.addfiles(fileDtos);
-            if(!save.Success){
+            if (!save.Success) {
                 result.Message = save.Message;
-                result.Success = false ;
+                result.Success = false;
                 return result;
             }
             result.Message = "images saved successfully"
             return result;
         }
-        catch(e){
+        catch (e) {
             result.Message = String(e);
             result.Success = false;
-    
+
         }
         return result;
     }
+
+    async deleteresturant(user:any , resturantId:string):Promise<Result<null>>{
+        const result = new Result<null>;
+    try{
+        const checkResturantOwner = await this.Resreo.findOne({where:{id:resturantId , ownerid:user.userId}})
+        if(checkResturantOwner){
+            await this.Resreo.remove(checkResturantOwner);
+            result.Message = "user deleted";
+            return result;
+        }
+        result.Message ="User not found";
+        result.Success = false;
+    }
+    catch(e){
+        result.Message = String(e);
+        result.Success = false;
+
+    }
+        return result;
+    }
+    async FindbyID(id: string): Promise<Result<Resturant>> {
+        const result = new Result<Resturant>;
+        try {
+            const create = await this.Resreo.findOne({ where: { id:id } , relations:{tables:true} });
+            if (create != null) {
+                result.Data = create;
+                result.Message = `Resturant Found`;
+                return result;
+            }
+            result.Success = false;
+        }
+        catch (e) {
+            result.Message = String(e);
+            result.Success = false;
+
+        }
+        return result;
+    }
+    async checkResturantowner(resturantid: string , ownerid:string): Promise<Result<Resturant>> {
+        const result = new Result<Resturant>;
+        try {
+            const create = await this.Resreo.findOne({ where: { id:resturantid , ownerid:ownerid } });
+            if (create != null) {
+                result.Data = create;
+                result.Message = `is a valid owner`;
+                return result;
+            }
+            result.Success = false;
+        }
+        catch (e) {
+            result.Message = String(e);
+            result.Success = false;
+
+        }
+        return result;
+    }
+
+    
 }

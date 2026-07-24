@@ -1,33 +1,50 @@
-import { IsBoolean, IsDate, IsEmail, IsNotEmpty, Matches } from "class-validator";
-import { Column } from "typeorm";
+import { ApiProperty } from "@nestjs/swagger";
+import { IsBoolean, IsEmail, IsNotEmpty, IsOptional, IsString, Matches } from "class-validator";
 
 export class RegistrationDto{
+    @IsOptional()
+    @IsString()
+    @ApiProperty()
+    ownerid!:string;
     @IsNotEmpty()
+    @ApiProperty()
     @IsEmail()
-    email:string;
+    email!:string;
+    @ApiProperty()
     @IsEmail()
-    Resturantemail:string;
+    Resturantemail!:string;
     @IsNotEmpty()
-    password:string;
+    @ApiProperty()
+     @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/, 
+    { message: "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&)" })
+    password!:string;
     @IsNotEmpty()
-    role:string = "user";
+    @ApiProperty()
+    role?:string;
     @IsNotEmpty()
-    resturantName:string;
+    @ApiProperty()
+    resturantName!:string;
     @IsNotEmpty()
-    address:string;
+    @ApiProperty()
+    address!:string;
     @IsNotEmpty()
+    @ApiProperty()
     @IsBoolean()
-    isopen:boolean;
+    isopen!:boolean;
     @IsNotEmpty()
     @Matches(/^(?:\+?88)?01[3-9]\d{8}$/ , {message:"Invalid phone number (e.g., +8801XXXXXXXX or 01XXXXXXXX)."})
-    phone:string;
+    @ApiProperty()
+    phone!:string;
     @IsNotEmpty()
     @Matches(/^(?:1[0-2]|0?[1-9]):[0-5]\d\s?(?:[Aa][Mm]|[Pp][Mm])$/, {message: "Time must be in 12-hour format with AM/PM (e.g., 12:40 PM or 09:30 AM)."})
-    opening:string;
+    @ApiProperty()
+    opening!:string;
     @IsNotEmpty()
     @Matches(/^(?:1[0-2]|0?[1-9]):[0-5]\d\s?(?:[Aa][Mm]|[Pp][Mm])$/, {message: "Time must be in 12-hour format with AM/PM (e.g., 12:40 PM or 09:30 AM)."})
-    closing:string;
+    @ApiProperty()
+    closing!:string;
     @IsNotEmpty()
     @IsBoolean()
-    payfirst:boolean; 
+    @ApiProperty()
+    payfirst!:boolean; 
 }

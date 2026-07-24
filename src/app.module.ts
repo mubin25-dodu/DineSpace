@@ -10,6 +10,7 @@ import { MailModule } from './mail/mail.module';
 import { VerificationRequestModule } from './verification-request/verification-request.module';
 import { FilesModule } from './files/files.module';
 import { MenuModule } from './menu/menu.module';
+import { TablesModule } from './tables/tables.module';
 
 @Module({
   imports: [ConfigModule.forRoot({
@@ -25,7 +26,7 @@ import { MenuModule } from './menu/menu.module';
     database:process.env.database,
     autoLoadEntities:true,
     synchronize:true
-  }), UserModule, ResturantModule, MailModule, VerificationRequestModule, FilesModule, MenuModule],
+  }), UserModule, ResturantModule, MailModule, VerificationRequestModule, FilesModule, MenuModule, TablesModule],
   
   controllers: [AppController],
   providers: [AppService],

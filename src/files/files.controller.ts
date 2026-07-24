@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { Controller, Delete, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
 import { FilesService } from './files.service';
 import { AuthGuard } from '@nestjs/passport';
 import { jwtGuard } from 'src/auth/jwtGuard.guard';
@@ -12,7 +12,7 @@ export class FilesController {
 
   @UseGuards(jwtGuard , RolesGuard)
   @Roles('owner')
-  @Get("DeleteFile/:id")
+  @Delete("DeleteFile/:id")
   Deletefile( @Param("id") id:string , @Req() req:any):Promise<Result<null>>{
     return this.filesService.deletefile(id , req.user.userId);
   }

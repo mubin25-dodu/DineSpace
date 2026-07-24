@@ -1,5 +1,6 @@
 import { IsBoolean, IsEmail, IsNotEmpty, IsOptional, Matches } from "class-validator";
 import { Files } from "src/files/Entity/Files.Entity";
+import { Tables } from "src/tables/Entity/Tables.entity";
 import { users } from "src/user/Entity/users.entity";
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
@@ -50,9 +51,12 @@ export class Resturant {
     @JoinColumn({ name: 'ownerid' })
     owner!: users;
 
-    @OneToMany(() => Files, (file) => file.RestaurantId)
+    @OneToMany(() => Files, (file) => file.restaurant)
     files?: Files[];
-
+    
+    @OneToMany(() => Tables, (tables) => tables.resturant)
+    tables?: Tables[];
+    
     @CreateDateColumn()
     createdat!: Date;
 

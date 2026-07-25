@@ -113,3 +113,45 @@
     "payfirst": false
   }
 ]
+
+///menu data 
+[
+  {
+    "resturentId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "itemName": "Chicken Burger",
+    "price": 250,
+    "description": "Spicy grilled chicken burger",
+    "isAvailable": true,
+    "catagory": "Fast Food"
+  },
+  {
+    "resturentId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "itemName": "Pizza",
+    "price": 550,
+    "description": "Cheesy pizza with tomato sauce",
+    "isAvailable": true,
+    "catagory": "Italian"
+  }
+]
+
+//table data 
+[
+  {
+    "status": "AVAILABLE",
+    "tableno": 1,
+    "seatCapacity": 4,
+    "resturantid": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+  },
+  {
+    "status": "AVAILABLE",
+    "tableno": 2,
+    "seatCapacity": 2,
+    "resturantid": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+  },
+  {
+    "status": "RESERVED",
+    "tableno": 3,
+    "seatCapacity": 6,
+    "resturantid": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+  }
+]

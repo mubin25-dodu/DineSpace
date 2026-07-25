@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, Param, Patch, Post, Req, UploadedFiles, UseGuards, UseInterceptors } from '@nestjs/common';
 import { TablesService } from './tables.service';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { jwtGuard } from 'src/auth/jwtGuard.guard';
@@ -8,8 +8,8 @@ import { Result } from 'src/SharedServices/Result';
 import { TableDto } from './Dto/Table.dto';
 import { ResturantDto } from 'src/resturant/DTO/Resturant.Dto';
 import { PartialTableDto } from './Dto/PartialTable.dto';
-import { UUID } from 'crypto';
 import { Tables } from './Entity/Tables.entity';
+import { TableStatus } from './Enum/tablestatus.enum';
 
 @Controller('tables')
 export class TablesController {
@@ -37,4 +37,31 @@ export class TablesController {
   delete(@Param("id") id:string, @Req() req:any): Promise<Result<ResturantDto>> {
     return this.tablesService.deletetable(id , req.user);
   }
+
+
+  @ApiBearerAuth('bearerAuth')
+  @UseGuards(jwtGuard, RolesGuard)
+  @Roles('owner')
+  @Patch('TableMakeaAvailable/:id')
+  Tableisavailabe(@Param("id") id:string, @Req() req:any): Promise<Result<Tables>> {
+    return this.tablesService.tableStatus(id , req.user, TableStatus.Isavailable);
+  }
+  @ApiBearerAuth('bearerAuth')
+  @UseGuards(jwtGuard, RolesGuard)
+  @Roles('owner')
+  @Patch('TableMakeaoccupied/:id')
+  tableoccupied(@Param("id") id:string, @Req() req:any): Promise<Result<Tables>> {
+    return this.tablesService.tableStatus(id , req.user, TableStatus.isoccupied);
+  }
+ 
+
+  @ApiBearerAuth('bearerAuth')
+  @UseGuards(jwtGuard, RolesGuard)
+  @Roles('owner')
+  @Patch('TableMakereserved/:id')
+  tablereserve(@Param("id") id:string, @Req() req:any): Promise<Result<Tables>> {
+    return this.tablesService.tableStatus(id , req.user, TableStatus.isreserved);
+  }
+
+  
 }

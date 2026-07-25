@@ -5,19 +5,32 @@ import { Repository } from 'typeorm';
 import { FilesDto } from './DTO/Files.Dto';
 import { Result } from 'src/SharedServices/Result';
 import fs from 'fs/promises'
+import { Resturant } from 'src/resturant/Entity/Resturant.entity';
+import { menu } from 'src/menu/Entity/menu.entity';
 
 @Injectable()
 export class FilesService {
     constructor(@InjectRepository(Files) private readonly filerepo:Repository<Files>){}
 
 
-    async addfiles(file:FilesDto[]):Promise<Result<null>>{
-       const result = new Result<null>;
+async addfiles( file: Express.Multer.File[],data:FilesDto[] , user:any ):Promise<Result<Resturant | menu>>{
+       const result = new Result<Resturant | menu>;
                 try{
-                    const savedata = await this.filerepo.save(file);
+
+                   if(file.length>1){
+                     for(let i = 0 ; i<file.length ; i++){
+                        data[i].FileName = file[i].fieldname;
+                        data[i].OriginalName = file[i].originalname;
+                        data[i].Path = file[i].path;
+                        data[i].UploadedByUserId = user.userId;
+                        data[i].Size = file[i].size;
+                        }
+                    }
+                                    
+                const savedata = await this.filerepo.save(data);
                     if(!savedata){
                         // dleting the files if not saved
-                        for(const f of file){
+                        for(const f of data){
                             await fs.unlink(f.Path);
                         }
                         result.Message = "couldn't save images"
@@ -30,6 +43,10 @@ export class FilesService {
                 catch(e){
                     result.Message = String(e);
                     result.Success = false;
+                        // dleting the files if not saved
+                     for(const f of file){
+                            await fs.unlink(f.path);
+                        }
             
                 }
                 return result;
@@ -37,7 +54,6 @@ export class FilesService {
 
 async deletefile(fileid:string , userId:string):Promise<Result<null>>{
        const result = new Result<null>;
-       
                 try{
                     const savedata = await this.filerepo.find({where:{id:fileid , UploadedByUserId:userId}});
                     if(savedata== null || savedata.length==0){

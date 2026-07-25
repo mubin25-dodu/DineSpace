@@ -46,7 +46,7 @@ export class Files {
     @Column({ type: "uuid", nullable: true })
     MenuId?: string;
 
-    @ManyToOne(() => menu, (menu) => menu.files)
+    @ManyToOne(() => menu, (menu) => menu.images)
     @JoinColumn({ name: "MenuId" })
     Menu?: menu;
 }

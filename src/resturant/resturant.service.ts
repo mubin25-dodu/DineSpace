@@ -125,7 +125,7 @@ export class ResturantService {
                     { address: Like(`%${term}%`) } ,
 
                 ],
-                relations:{owner:true , tables:true}
+                relations:{owner:true , tables:true , menu:true}
             });
             if (search != null) {
                 result.Data = search;
@@ -142,34 +142,34 @@ export class ResturantService {
         return result;
     }
 
-    async Uploadfiles(file: Express.Multer.File[], id: string, uploadfor: fileEnum, userId: any): Promise<Result<Resturant>> {
-        const result = new Result<Resturant>;
-        try {
-            const fileDtos: FilesDto[] = file.map(file => ({
-                FileName: file.filename,
-                OriginalName: file.originalname,
-                Path: file.path,
-                Size: file.size,
-                UploadedByUserId: userId,
-                RestaurantId: uploadfor == fileEnum.Resturant ? id : undefined,
-                MenuId: uploadfor == fileEnum.Menu ? id : undefined,
-            }));
-            const save = await this.fileservice.addfiles(fileDtos);
-            if (!save.Success) {
-                result.Message = save.Message;
-                result.Success = false;
-                return result;
-            }
-            result.Message = "images saved successfully"
-            return result;
-        }
-        catch (e) {
-            result.Message = String(e);
-            result.Success = false;
+    // async Uploadfiles(file: Express.Multer.File[], id: string, uploadfor: fileEnum, userId: any): Promise<Result<Resturant>> {
+    //     const result = new Result<Resturant>;
+    //     try {
+    //         const fileDtos: FilesDto[] = file.map(file => ({
+    //             FileName: file.filename,
+    //             OriginalName: file.originalname,
+    //             Path: file.path,
+    //             Size: file.size,
+    //             UploadedByUserId: userId,
+    //             RestaurantId: uploadfor == fileEnum.Resturant ? id : undefined,
+    //             MenuId: uploadfor == fileEnum.Menu ? id : undefined,
+    //         }));
+    //         const save = await this.fileservice.addfiles(fileDtos);
+    //         if (!save.Success) {
+    //             result.Message = save.Message;
+    //             result.Success = false;
+    //             return result;
+    //         }
+    //         result.Message = "images saved successfully"
+    //         return result;
+    //     }
+    //     catch (e) {
+    //         result.Message = String(e);
+    //         result.Success = false;
 
-        }
-        return result;
-    }
+    //     }
+    //     return result;
+    // }
 
     async deleteresturant(user:any , resturantId:string):Promise<Result<null>>{
         const result = new Result<null>;
@@ -186,7 +186,6 @@ export class ResturantService {
     catch(e){
         result.Message = String(e);
         result.Success = false;
-
     }
         return result;
     }
@@ -217,6 +216,7 @@ export class ResturantService {
                 result.Message = `is a valid owner`;
                 return result;
             }
+            result.Message = `Not a valid owner`;
             result.Success = false;
         }
         catch (e) {

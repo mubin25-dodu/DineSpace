@@ -13,17 +13,17 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
   
   
-  @ApiBearerAuth('bearerAuth')
-  @UseGuards(jwtGuard, RolesGuard)
-  @Roles('admin')
-  @Post("adduser")
-  async adduser(@Body() user:UserDto):Promise<Result<UserDto>>{
-     const adduser =  await this.userService.adduser(user);
-    if (adduser.Data) {
-      adduser.Data.password = "******";
-    }
-    return adduser;
-  }
+  // @ApiBearerAuth('bearerAuth')
+  // @UseGuards(jwtGuard, RolesGuard)
+  // @Roles('admin')
+  // @Post("adduser")
+  // async adduser(@Body() user:UserDto):Promise<Result<UserDto>>{
+  //    const adduser =  await this.userService.adduser(user);
+  //   if (adduser.Data) {
+  //     adduser.Data.password = "******";
+  //   }
+  //   return adduser;
+  // }
 
   @Get("getbyemail/:email")
   async Findbyemail(@Param("email") email:string ):Promise<Result<PartialUserDto>>{

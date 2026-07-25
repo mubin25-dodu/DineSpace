@@ -3,16 +3,13 @@ import { ResturantDto } from './DTO/Resturant.Dto';
 import { Result } from 'src/SharedServices/Result';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Resturant } from './Entity/Resturant.entity';
-import { Like, Or, Repository } from 'typeorm';
-import { FilesService } from 'src/files/files.service';
-import { fileEnum } from 'src/files/Enum/files.Enum';
-import { FilesDto } from 'src/files/DTO/Files.Dto';
+import { Like, Repository } from 'typeorm';
 import { PartialResturantDto } from './DTO/ParticalResturant.Dto';
 
 @Injectable()
 export class ResturantService {
 
-    constructor(@InjectRepository(Resturant) private readonly Resreo: Repository<Resturant>, private fileservice: FilesService) { }
+    constructor(@InjectRepository(Resturant) private readonly Resreo: Repository<Resturant>) { }
 
     async addresturant(data: ResturantDto): Promise<Result<ResturantDto>> {
         const result = new Result<ResturantDto>;

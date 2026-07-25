@@ -3,14 +3,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { menu } from './Entity/menu.entity';
 import { In, Repository } from 'typeorm';
 import { Result } from 'src/SharedServices/Result';
-import { ResturantService } from 'src/resturant/resturant.service';
 import { MenuDto } from './Dto/menu.Dto';
 
 @Injectable()
 export class MenuService {
-    constructor(@InjectRepository(menu) private readonly menurepo:Repository<menu> , private ResturantService:ResturantService){}
+    constructor(@InjectRepository(menu) private readonly menurepo:Repository<menu>){ }
 
-    async createMenu(menu:MenuDto[] , user):Promise<Result<menu[]>>{
+    async createMenu(menu:MenuDto[] , user:any):Promise<Result<menu[]>>{
                const result = new Result<menu[]>;
            try{
             const checkids = menu.some((e)=> e.id !== undefined);
@@ -27,9 +26,11 @@ export class MenuService {
                 return result;
             }
 
-            const searchResturent = await this.ResturantService.checkResturantowner(menu[0].resturentId , user.userId);
-            if(!searchResturent.Success){
-                result.Message = searchResturent.Message;
+            const searchResturent = await this.menurepo.manager.getRepository('Resturant').findOne({
+                where: { id: menu[0].resturentId, ownerid: user.userId }
+            });
+            if(!searchResturent){
+                result.Message = 'Not a valid owner';
                 result.Success = false;
                 return result;
             }
@@ -46,7 +47,7 @@ export class MenuService {
        
            } 
 
-    async updateMenu(menu:MenuDto[] , user):Promise<Result<menu[]>>{
+    async updateMenu(menu:MenuDto[] , user:any):Promise<Result<menu[]>>{
                const result = new Result<menu[]>;
            try{
             const checkids = menu.some((e)=> e.id === undefined);
@@ -62,9 +63,11 @@ export class MenuService {
                 return result;
             }
 
-            const searchResturent = await this.ResturantService.checkResturantowner(menu[0].resturentId , user.userId);
-            if(!searchResturent.Success){
-                result.Message = searchResturent.Message;
+            const searchResturent = await this.menurepo.manager.getRepository('Resturant').findOne({
+                where: { id: menu[0].resturentId, ownerid: user.userId }
+            });
+            if(!searchResturent){
+                result.Message = 'Not a valid owner';
                 result.Success = false;
                 return result;
             }
@@ -97,9 +100,11 @@ export class MenuService {
                 result.Success = false;
                 return result;
             }
-            const chekowner = await this.ResturantService.checkResturantowner(getitem.resturentId , user.userId);
-            if(!chekowner.Success){
-                result.Message = chekowner.Message;
+            const chekowner = await this.menurepo.manager.getRepository('Resturant').findOne({
+                where: { id: getitem.resturentId, ownerid: user.userId }
+            });
+            if(!chekowner){
+                result.Message = 'Not a valid owner';
                 result.Success = false;
                 return result;
             }
@@ -145,14 +150,35 @@ export class MenuService {
                     result.Success = false;
                     return result;
                 }
-                const chekowner = await this.ResturantService.checkResturantowner(getitem.resturentId , user.userId);
-                if(!chekowner.Success){
-                    result.Message = chekowner.Message;
+                const chekowner = await this.menurepo.manager.getRepository('Resturant').findOne({
+                    where: { id: getitem.resturentId, ownerid: user.userId }
+                });
+                if(!chekowner){
+                    result.Message = 'Not a valid owner';
                     result.Success = false;
                     return result;
                 }
                 getitem.isAvailable = !getitem.isAvailable;
                 result.Data = await this.menurepo.save(getitem);
+                result.Message = "Success";
+            }
+            catch(e){
+                result.Message = String(e);
+                result.Success = false;
+        
+            }
+                return result;
+        
+          } 
+    async getbyid(id:string):Promise<Result<menu>>{
+                const result = new Result<menu>;
+            try{
+                const getitem = await this.menurepo.findOne({where:{id:id}});
+                if(getitem == null){
+                    result.Message ="Item not found";
+                    result.Success = false;
+                    return result;
+                }
                 result.Message = "Success";
             }
             catch(e){

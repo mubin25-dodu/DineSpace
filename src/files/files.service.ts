@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Files } from './Entity/Files.Entity';
 import { Repository } from 'typeorm';
@@ -7,32 +7,49 @@ import { Result } from 'src/SharedServices/Result';
 import fs from 'fs/promises'
 import { Resturant } from 'src/resturant/Entity/Resturant.entity';
 import { menu } from 'src/menu/Entity/menu.entity';
+import { ResturantService } from 'src/resturant/resturant.service';
+import { MenuService } from 'src/menu/menu.service';
 
 @Injectable()
 export class FilesService {
-    constructor(@InjectRepository(Files) private readonly filerepo:Repository<Files>){}
+    constructor(@InjectRepository(Files) private readonly filerepo:Repository<Files> ,
+    private resturentService:ResturantService,
+    private menuService:MenuService){}
 
 
-async addfiles( file: Express.Multer.File[],data:FilesDto[] , user:any ):Promise<Result<Resturant | menu>>{
+async addfiles( file: Express.Multer.File[], user:any , restaurantId?:string, menuId?:string ):Promise<Result<Resturant | menu>>{
        const result = new Result<Resturant | menu>;
                 try{
-
-                   if(file.length>1){
-                     for(let i = 0 ; i<file.length ; i++){
-                        data[i].FileName = file[i].fieldname;
-                        data[i].OriginalName = file[i].originalname;
-                        data[i].Path = file[i].path;
-                        data[i].UploadedByUserId = user.userId;
-                        data[i].Size = file[i].size;
-                        }
+                    if(restaurantId!=undefined && !(await this.resturentService.FindbyID(restaurantId)).Success){
+                        result.Success = false;
+                        result.Message = "resturant not found check the id";
+                        this.deletefromproject(file);
+                        return result;
                     }
+                     if(menuId!=undefined && !(await this.menuService.getbyid(menuId)).Success){
+                        result.Success = false;
+                        result.Message = "item not found check the id";
+                        this.deletefromproject(file);
+                        return result;
+                    }
+
+                    const data: FilesDto[] = [];
+                    for (const item of file) {
+                        data.push({
+                            FileName: item.filename,
+                            OriginalName: item.originalname,
+                            Path: item.path,
+                            UploadedByUserId: user.userId,
+                            Size: item.size,
+                            RestaurantId: restaurantId,
+                            MenuId: menuId,
+                        } as FilesDto);
+                    }
+            
                                     
                 const savedata = await this.filerepo.save(data);
                     if(!savedata){
-                        // dleting the files if not saved
-                        for(const f of data){
-                            await fs.unlink(f.Path);
-                        }
+                        this.deletefromproject(file);
                         result.Message = "couldn't save images"
                         result.Success = false
                         return result;
@@ -43,10 +60,7 @@ async addfiles( file: Express.Multer.File[],data:FilesDto[] , user:any ):Promise
                 catch(e){
                     result.Message = String(e);
                     result.Success = false;
-                        // dleting the files if not saved
-                     for(const f of file){
-                            await fs.unlink(f.path);
-                        }
+                     this.deletefromproject(file);
             
                 }
                 return result;
@@ -78,5 +92,11 @@ async deletefile(fileid:string , userId:string):Promise<Result<null>>{
                 }
                 return result;
           }
+
+    async deletefromproject(data:any[]){
+        for(const f of data){
+            await fs.unlink(f.path);
+        }
+    }
     
 }

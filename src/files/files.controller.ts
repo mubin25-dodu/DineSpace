@@ -1,6 +1,5 @@
-import { BadRequestException, Body, Controller, Delete, Get, Param, Post, Req, UploadedFiles, UseGuards, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, Param, Post, Query, Req, UploadedFiles, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FilesService } from './files.service';
-import { AuthGuard } from '@nestjs/passport';
 import { jwtGuard } from 'src/auth/jwtGuard.guard';
 import { RolesGuard } from 'src/auth/Role/Roles.Guard';
 import { Roles } from 'src/auth/Role/Roles.decorator';
@@ -8,7 +7,6 @@ import { Result } from 'src/SharedServices/Result';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
-import { FilesDto } from './DTO/Files.Dto';
 import { Resturant } from 'src/resturant/Entity/Resturant.entity';
 import { menu } from 'src/menu/Entity/menu.entity';
 
@@ -17,6 +15,7 @@ export class FilesController {
   constructor(private readonly filesService: FilesService) {}
 
   @UseGuards(jwtGuard , RolesGuard)
+  @ApiBearerAuth('bearerAuth')
   @Roles('owner')
   @Delete("DeleteFile/:id")
   Deletefile( @Param("id") id:string , @Req() req:any):Promise<Result<null>>{
@@ -31,7 +30,7 @@ export class FilesController {
       storage: diskStorage({
         destination:'./uploads',
         filename: (req , file , cb)=>{
-          const filename = Date.now()+"-"+ file.originalname;
+          const filename = "DineSpace"+Date.now()+"-"+ file.originalname;
           cb( null , filename);
         }
       }),
@@ -47,8 +46,8 @@ export class FilesController {
         fileSize:  3 * 1024 * 1024
       }
   }))
-  async uploadfiles( @UploadedFiles() file: Express.Multer.File[] , @Body() data:FilesDto[] , 
-  @Req() req:any):Promise<Result<Resturant | menu>>{
+  async uploadfiles( @UploadedFiles() file: Express.Multer.File[] , @Req() req:any , @Query('resturantId') resturenId?:string, @Query('menuId') menuId?:string ,
+  ):Promise<Result<Resturant | menu>>{
     
     const result = new Result<Resturant | menu>;
     if (!file || file === undefined) {
@@ -56,8 +55,8 @@ export class FilesController {
       result.Success = false;
       return result;
     }
-    console.log(file , data);
+    // console.log(file);
     
-    return await this.filesService.addfiles( file , data , req.user);
+    return await this.filesService.addfiles( file , req.user , resturenId , menuId);
   }
 }

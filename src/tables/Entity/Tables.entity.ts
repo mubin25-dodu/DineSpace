@@ -1,5 +1,6 @@
 import { Resturant } from 'src/resturant/Entity/Resturant.entity';
-import { Column, Entity, JoinColumn, ManyToMany, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Order } from 'src/order/Entity/Order.entity';
+import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
 import { TableStatus } from '../Enum/tablestatus.enum';
 
 @Entity('tables')
@@ -32,6 +33,8 @@ export class Tables {
   @JoinColumn({name:"resturantid"})
   resturant!:Resturant;
 
-//   @Column({ type: 'int', nullable: true })
-//   logId?: number;
+  @OneToOne(() => Order, (order) => order.table)
+  @JoinColumn({ name: "orderId" })
+  order?: Order;
+
 }

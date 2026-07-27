@@ -28,6 +28,16 @@ export class AuthService {
                     result.Data = data;
                     return result;
                 }
+                if((await this.userService.FIndbyemail(data.email)).Success){
+                    result.Message = "the email is already registred as a user"
+                    result.Success = false;
+                    return result;
+                }
+                if((await this.ResturantService.Findbyemail(data.email)).Success){
+                    result.Message = "the email is already registred as a resturent"
+                    result.Success = false;
+                    return result;
+                }
                 const create = await this.varRepo.save({email:data.email , uid: randomUUID()}); 
                 if(create){
                     const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:3000';
@@ -81,8 +91,8 @@ export class AuthService {
                 
                 const adduser = await this.userService.adduser(data);
                 if(adduser.Success){
-                    this.varRepo.remove(checkuid);
-                    data.ownerid = adduser.Data?.id || '';
+                   await this.varRepo.remove(checkuid);
+                    data.ownerid = adduser.Data!.id || '';
                     const resturant = await this.ResturantService.addresturant(data);
                     if(resturant.Success){
                         result.Data = data;

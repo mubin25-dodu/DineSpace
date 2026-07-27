@@ -9,6 +9,7 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { Resturant } from 'src/resturant/Entity/Resturant.entity';
 import { menu } from 'src/menu/Entity/menu.entity';
+import { Admin } from 'typeorm/driver/mongodb/typings.js';
 
 @Controller('files')
 export class FilesController {
@@ -16,7 +17,7 @@ export class FilesController {
 
   @UseGuards(jwtGuard , RolesGuard)
   @ApiBearerAuth('bearerAuth')
-  @Roles('owner')
+  @Roles('owner' , "admin")
   @Delete("DeleteFile/:id")
   Deletefile( @Param("id") id:string , @Req() req:any):Promise<Result<null>>{
     return this.filesService.deletefile(id , req.user.userId);
@@ -24,7 +25,7 @@ export class FilesController {
 
   @UseGuards(jwtGuard,RolesGuard)
   @ApiBearerAuth('bearerAuth')
-  @Roles('owner')
+  @Roles('owner' , "admin")
   @Post("uploadImages")
   @UseInterceptors(FilesInterceptor('file' , 5 ,{
       storage: diskStorage({

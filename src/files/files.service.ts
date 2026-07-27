@@ -20,18 +20,27 @@ export class FilesService {
 async addfiles( file: Express.Multer.File[], user:any , restaurantId?:string, menuId?:string ):Promise<Result<Resturant | menu>>{
        const result = new Result<Resturant | menu>;
                 try{
-                    if(restaurantId!=undefined && !(await this.resturentService.FindbyID(restaurantId)).Success){
-                        result.Success = false;
-                        result.Message = "resturant not found check the id";
-                        this.deletefromproject(file);
-                        return result;
+                    let restaurantResult;
+                    if (restaurantId !== undefined) {
+                        restaurantResult = await this.resturentService.FindbyID(restaurantId);
+                        if (!restaurantResult.Success || restaurantResult.Data?.ownerid !== user.userId) {
+                            result.Success = false;
+                            result.Message = "resturant not found check the id Or you are not the owner";
+                            this.deletefromproject(file);
+                            return result;
+                        }
                     }
-                     if(menuId!=undefined && !(await this.menuService.getbyid(menuId)).Success){
-                        result.Success = false;
-                        result.Message = "item not found check the id";
-                        this.deletefromproject(file);
-                        return result;
+                    let menuResult;
+                    if (menuId !== undefined) {
+                        menuResult = await this.menuService.getbyid(menuId);
+                        if (!menuResult.Success || menuResult.Data?.resturent?.ownerid !== user.userId) {
+                            result.Success = false;
+                            result.Message = "item not found check the id Or you are not the owner";
+                            this.deletefromproject(file);
+                            return result;
+                        }
                     }
+                    
 
                     const data: FilesDto[] = [];
                     for (const item of file) {

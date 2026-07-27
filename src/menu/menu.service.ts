@@ -173,12 +173,13 @@ export class MenuService {
     async getbyid(id:string):Promise<Result<menu>>{
                 const result = new Result<menu>;
             try{
-                const getitem = await this.menurepo.findOne({where:{id:id}});
+                const getitem = await this.menurepo.findOne({where:{id:id} , relations:{resturent:true}});
                 if(getitem == null){
                     result.Message ="Item not found";
                     result.Success = false;
                     return result;
                 }
+                result.Data = getitem;
                 result.Message = "Success";
             }
             catch(e){

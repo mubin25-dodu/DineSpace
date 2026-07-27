@@ -18,9 +18,23 @@ export class ResturantController {
   @Roles('owner')
   @Post("CreateResturant")
   async Addresturant(@Req() req:any, @Body() data:ResturantDto):Promise<Result<ResturantDto>>{
-    // console.log(req)
     data.ownerid = req.user.userId;
     return  await this.resturantService.addresturant(data);
+  }
+
+  @ApiBearerAuth('bearerAuth')
+  @UseGuards(jwtGuard,RolesGuard)
+  @Roles('admin' , "owner")
+  @Get("getallresturents")
+  async getall(@Req() req:any):Promise<Result<Resturant[]>>{
+    return  await this.resturantService.getall(req.user);
+  }
+  @ApiBearerAuth('bearerAuth')
+  @UseGuards(jwtGuard,RolesGuard)
+  @Roles('admin' , "owner")
+  @Get("getResturentById/:id")
+  async getById(@Param('id') id:string , @Req() req:any):Promise<Result<Resturant>>{
+    return  await this.resturantService.FindbyID(id);
   }
 
   @UseGuards(jwtGuard,RolesGuard)
@@ -28,8 +42,7 @@ export class ResturantController {
   @Roles('owner')
   @Patch("UpdateResturant")
   async Updateresturant( @Req() req:any , @Body() data:PartialResturantDto):Promise<Result<PartialResturantDto>>{
-    data.ownerid = req.user.userId;
-    return  await this.resturantService.Updateresturant(data);
+    return  await this.resturantService.Updateresturant(data , req.user);
   }
 
   //anyone can search with term(name email phone address)
@@ -51,7 +64,7 @@ export class ResturantController {
     @UseGuards(jwtGuard, RolesGuard)
     @Roles('owner')
     @Delete("DeleteResturant/:Id")
-    deleteuser(@Param("Id") Id:string , @Req() req:any):Promise<Result<null>>{
+    deletrResturent(@Param("Id") Id:string , @Req() req:any):Promise<Result<null>>{
       return this.resturantService.deleteresturant(req.user , Id);
   
     }

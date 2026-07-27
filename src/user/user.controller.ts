@@ -7,6 +7,7 @@ import { RolesGuard } from 'src/auth/Role/Roles.Guard';
 import { Roles } from 'src/auth/Role/Roles.decorator';
 import { Result } from 'src/SharedServices/Result';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { updatePassDto } from './DTO/updatepass.dto';
 
 @Controller('user')
 export class UserController {
@@ -45,13 +46,13 @@ export class UserController {
   @UseGuards(jwtGuard, RolesGuard)
   @Roles('owner')
   @Patch('UpdatePassword')
-  async updatePassword(@Body() updateuser:PartialUserDto , @Req() req:any):Promise<Result<PartialUserDto>>{
+  async updatePassword(@Body() updateuser:updatePassDto , @Req() req:any):Promise<Result<PartialUserDto>>{
   return await this.userService.UpdatePassword(updateuser , req.user ) ;
   }
 
   @ApiBearerAuth('bearerAuth')
   @UseGuards(jwtGuard, RolesGuard)
-  @Roles('owner')
+  @Roles('owner' , 'admin')
   @Delete("DeleteUser")
   deleteuser(@Req() req:any):Promise<Result<null>>{
     return this.userService.deleteuser(req.user);

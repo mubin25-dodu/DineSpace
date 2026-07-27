@@ -175,7 +175,7 @@ export class TablesService {
            
             getresturant.status = status;
             result.Data =  await this.tablerepo.save(getresturant);
-            result.Message = 'Table deleted successfully';
+            result.Message = 'Table ststus Updated successfully';
             result.Success = true;
             return result;
         } catch (e) {

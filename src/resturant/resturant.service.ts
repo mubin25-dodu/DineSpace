@@ -5,6 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Resturant } from './Entity/Resturant.entity';
 import { Like, Repository } from 'typeorm';
 import { PartialResturantDto } from './DTO/ParticalResturant.Dto';
+import { use } from 'passport';
 
 @Injectable()
 export class ResturantService {
@@ -53,6 +54,33 @@ export class ResturantService {
         }
         return result;
     }
+    async getall(user:any): Promise<Result<Resturant[]>> {
+        const result = new Result<Resturant[]>;
+        try {
+            if(user.role == "admin"){
+            const get = await this.Resreo.find({ relations: { files: true, tables: true, menu: true } });
+            if (get != null) {
+                result.Data = get;
+            }
+            result.Message = `${get.length} resturent Found`;
+            return result;
+
+            }
+            const get = await this.Resreo.find({where:{ownerid:user.userId} , relations:{files:true, tables:true , menu:true}});
+            if (get != null) {
+                result.Data = get;
+                result.Message = `${get.length} resturent Found`;
+                return result;
+            }
+            result.Success = false;
+        }
+        catch (e) {
+            result.Message = String(e);
+            result.Success = false;
+
+        }
+        return result;
+    }
 
     async Findbyphone(phone: string): Promise<Result<ResturantDto>> {
         const result = new Result<ResturantDto>;
@@ -73,7 +101,7 @@ export class ResturantService {
         return result;
     }
 
-    async Updateresturant(data: PartialResturantDto): Promise<Result<Resturant>> {
+    async Updateresturant(data: PartialResturantDto , user:any): Promise<Result<Resturant>> {
         const result = new Result<Resturant>;
         try {
             // const check = await this.Findbyemail(data.Resturantemail) || await this.Findbyphone(data.phone);
@@ -93,6 +121,11 @@ export class ResturantService {
             if (!getresturent.Success || !getresturent.Data) {
                 result.Success = false;
                 result.Message = "Restaurant not found";
+                return result;
+            }
+            if(getresturent.Data.ownerid !== user.userId){
+                result.Message ="you do not have parmition to update the resturant";
+                result.Success = false;
                 return result;
             }
 
@@ -122,7 +155,7 @@ export class ResturantService {
                     { address: Like(`%${term}%`) } ,
 
                 ],
-                relations:{owner:true , tables:true , menu:true}
+                relations:{owner:true , tables:true , menu:true , files:true}
             });
             if (search != null) {
                 result.Data = search;
@@ -174,10 +207,10 @@ export class ResturantService {
         const checkResturantOwner = await this.Resreo.findOne({where:{id:resturantId , ownerid:user.userId}})
         if(checkResturantOwner){
             await this.Resreo.remove(checkResturantOwner);
-            result.Message = "user deleted";
+            result.Message = "Resturant deleted";
             return result;
         }
-        result.Message ="User not found";
+        result.Message ="Resturant not found";
         result.Success = false;
     }
     catch(e){

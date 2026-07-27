@@ -35,7 +35,7 @@ export class AuthController {
   }
   @UseGuards(jwtGuard , RolesGuard)
   @ApiBearerAuth('bearerAuth')
-  @Roles("owner")
+  @Roles("owner" , "admin")
   @Get("check")
   check(@Req() data:any){
     console.log("hit");

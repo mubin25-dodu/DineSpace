@@ -1,8 +1,9 @@
 import { IsBoolean, IsEmail, IsNotEmpty, IsOptional, Matches } from "class-validator";
 import { Files } from "src/files/Entity/Files.Entity";
+import { menu } from "src/menu/Entity/menu.entity";
 import { Tables } from "src/tables/Entity/Tables.entity";
 import { users } from "src/user/Entity/users.entity";
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 @Entity("restaurants")
 export class Resturant {
@@ -56,6 +57,9 @@ export class Resturant {
     
     @OneToMany(() => Tables, (tables) => tables.resturant)
     tables?: Tables[];
+
+    @OneToMany(()=> menu , (menu) => menu.resturent)
+    menu?:menu[];
     
     @CreateDateColumn()
     createdat!: Date;

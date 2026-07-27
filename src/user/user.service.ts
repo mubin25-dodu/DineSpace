@@ -8,6 +8,7 @@ import { PartialUserDto } from './DTO/partialUser.dto';
 import * as bcrypt from 'bcrypt';
 import { VerificationRequestService } from 'src/verification-request/verification-request.service';
 import { VerificationType } from 'src/verification-request/Enum/verification-type.enum';
+import { updatePassDto } from './DTO/updatepass.dto';
 
 
 @Injectable()
@@ -32,7 +33,7 @@ export class UserService {
         result.Success = false;
     }
     catch(e){
-        result.Data= user;
+        result.Data = user;
         result.Message = String(e);
         result.Success = false;
 
@@ -47,7 +48,7 @@ export class UserService {
         const getuser = await this.userrepo.findOne({
             where:{email:email},
             select:{id:true, email:true, password:true, role:true} , 
-            relations:{resturants:true}
+            relations:{resturants:{tables:true , files:true , menu:true}}
         });
         if(getuser){
             result.Data = getuser;
@@ -122,22 +123,36 @@ export class UserService {
         return result;
 
     }
-    async UpdatePassword( user:any, updateuser:PartialUserDto):Promise<Result<PartialUserDto>>{
+    async UpdatePassword( passwords:updatePassDto , user:any ):Promise<Result<PartialUserDto>>{
         const result = new Result<PartialUserDto>();
     try{
-         const hashpassword = await bcrypt.hash(updateuser.password! , 10);
-         updateuser.password = hashpassword;
-
-        const create = await this.userrepo.update({id:user.userId} , {password: updateuser.password}); 
-        if(create.affected == 1){
-            result.Message ="password updated";
+        if(passwords.confirmPassword !== passwords.newPassword){
+            result.Message = "Password and confirm password dosen't match";
+            result.Success = false;
             return result;
         }
-        result.Message ="User Not found";
-        result.Success = false;
+
+        const getuser = await this.userrepo.findOne({where:{id:user.userId}});
+        if(getuser== null){
+            result.Message = "User not found";
+            result.Success = false;
+            return result;
+        }
+        const match = await bcrypt.compare(passwords.currentPassword , getuser.password);
+        if(!match){
+            result.Message = "Wrong password";
+            result.Success = false;
+            return result;
+        }
+
+        const hashpassword = await bcrypt.hash(passwords.confirmPassword! , 10);
+        getuser.password = hashpassword;
+
+        await this.userrepo.save(getuser); 
+        result.Message ="password updated";
+        return result;
     }
     catch(e){
-        result.Data= updateuser;
         result.Message = String(e);
         result.Success = false;
     }

@@ -13,25 +13,39 @@ import { MenuModule } from './menu/menu.module';
 import { TablesModule } from './tables/tables.module';
 import { OrderModule } from './order/order.module';
 import { PaymentModule } from './payment/payment.module';
+import { FeedbackModule } from './feedback/feedback.module';
 
 @Module({
-  imports: [ConfigModule.forRoot({
-    isGlobal:true,
-    expandVariables:true,
-    envFilePath:'.env'
-  }),AuthModule, TypeOrmModule.forRoot({
-    type:'postgres',
-    host: process.env.DBHost ?? 'localhost',
-    port: Number(process.env.DBport ?? 5432),
-    username: process.env.DBusername,
-    password: process.env.DBpassword,
-    database: process.env.database,
-    ssl:{rejectUnauthorized: false} ,
-    extra: { rejectUnauthorized: false },
-    autoLoadEntities:true,
-    synchronize:false
-  }), UserModule, ResturantModule, MailModule, VerificationRequestModule, FilesModule, MenuModule, TablesModule, OrderModule, PaymentModule],
-  
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      expandVariables: true,
+      envFilePath: '.env',
+    }),
+    AuthModule,
+    TypeOrmModule.forRoot({
+      type: 'postgres',
+      host: process.env.DBHost ?? 'localhost',
+      port: Number(process.env.DBport ?? 5432),
+      username: process.env.DBusername,
+      password: process.env.DBpassword,
+      database: process.env.database,
+      ssl: { rejectUnauthorized: false },
+      extra: { rejectUnauthorized: false },
+      autoLoadEntities: true,
+      synchronize: false,
+    }),
+    UserModule,
+    ResturantModule,
+    MailModule,
+    VerificationRequestModule,
+    FilesModule,
+    MenuModule,
+    TablesModule,
+    OrderModule,
+    PaymentModule,
+    FeedbackModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

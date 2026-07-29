@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
+import { ReservationModule } from './reservation/reservation.module';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
@@ -30,7 +31,7 @@ import { PaymentModule } from './payment/payment.module';
     extra: { rejectUnauthorized: false },
     autoLoadEntities:true,
     synchronize:false
-  }), UserModule, ResturantModule, MailModule, VerificationRequestModule, FilesModule, MenuModule, TablesModule, OrderModule, PaymentModule],
+  }), ReservationModule,UserModule, ResturantModule, MailModule, VerificationRequestModule, FilesModule, MenuModule, TablesModule, OrderModule, PaymentModule],
   
   controllers: [AppController],
   providers: [AppService],

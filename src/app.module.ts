@@ -33,7 +33,7 @@ import { AdminModule } from './admin/admin.module';
     extra: { rejectUnauthorized: false },
     autoLoadEntities:true,
     synchronize:false
-  }), ReservationModule,UserModule, ResturantModule, MailModule, VerificationRequestModule, FilesModule, MenuModule, TablesModule, OrderModule, PaymentModule],
+  }),FeedbackModule , AdminModule , ReservationModule,UserModule, ResturantModule, MailModule, VerificationRequestModule, FilesModule, MenuModule, TablesModule, OrderModule, PaymentModule],
   
   controllers: [AppController],
   providers: [AppService],

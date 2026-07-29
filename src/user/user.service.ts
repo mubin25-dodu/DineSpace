@@ -24,6 +24,8 @@ export class UserService {
             result.Success = false;
             return result;
         }
+        user.role = "owner";
+        user.email = user.email.toLowerCase();
         const create = await this.userrepo.save(user); 
         if(create){
             result.Data = create;
@@ -47,9 +49,8 @@ export class UserService {
     try{
         const getuser = await this.userrepo.findOne({
             where:{email:email},
-            select:{id:true, email:true, password:true, role:true} , 
-            relations:{resturants:{tables:true , files:true , menu:true}}
-        });
+            select:{id:true, email:true, password:true, role:true} }
+        );
         if(getuser){
             result.Data = getuser;
             return result;
@@ -68,7 +69,7 @@ export class UserService {
     async UpdateEmail( user:any,updateuser:PartialUserDto):Promise<Result<PartialUserDto>>{
         const result = new Result<PartialUserDto>();
     try{
-        const check = await this.FIndbyemail(updateuser.email);
+        const check = await this.FIndbyemail((updateuser.email)?.toLowerCase);
         if(check.Success){
         result.Message ="Email Already in use";
         result.Success = false;

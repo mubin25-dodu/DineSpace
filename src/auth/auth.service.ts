@@ -156,7 +156,7 @@ export class AuthService {
                     result.Success = true;
                     return result;
                 }
-                    result.Message="User Not Found";
+                    result.Message = getuser.Message;
                     result.Data = data;
                     result.Success = false;
                     return result;

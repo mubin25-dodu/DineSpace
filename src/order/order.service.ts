@@ -12,6 +12,8 @@ import { table } from 'console';
 import { TablesService } from 'src/tables/tables.service';
 import { Resturant } from 'src/resturant/Entity/Resturant.entity';
 import { randomUUID } from 'crypto';
+import { Tables } from 'src/tables/Entity/Tables.entity';
+import { TableStatus } from 'src/tables/Enum/tablestatus.enum';
 
 @Injectable()
 export class OrderService {
@@ -82,15 +84,29 @@ export class OrderService {
               const orderId = randomUUID();
               data.payment.orderId = orderId;
               data.orderdetails.id  = orderId;
-              const getresturent = await this.resrepo.findOne({where:{tables:{id:data.orderdetails.tableId} }, relations:{menu:true}})
+              const getresturent = await this.resrepo.findOne({where:{tables:{id:data.orderdetails.tableId} }, relations:{menu:true , tables:true}})
+              
+              console.log(getresturent?.tables);
               if(getresturent === null){
                 result.Message = "no resturent or table found"
                 result.Success = false;
                 return result;
               }
+               const table = getresturent.tables?.[0];
+
+               if(table?.status !== TableStatus.Isavailable){
+                result.Message == `The table ${table?.status}`;
+                result.Success = false ;
+                return result;
+               }
 
               if(getresturent.payfirst == true && data.payment.status !== PaymentStatus.Paid){
-                 result.Message = "Pay first"
+                result.Message = "Pay first"
+                result.Success = false;
+                return result;
+              }
+              if( data.payment.transectionId == undefined || data.payment.acountNumber == undefined ){
+                result.Message = "Enter the payment details";
                 result.Success = false;
                 return result;
               }

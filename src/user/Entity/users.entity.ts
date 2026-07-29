@@ -14,7 +14,7 @@ export class users {
     password!: string;
 
     @Column({ type: "varchar", length: 10 , default:"owner" })
-    role?: string;
+    role: string = "owner";
 
     @OneToMany(() => Resturant, (restaurant) => restaurant.owner)
     resturants?: Resturant[];

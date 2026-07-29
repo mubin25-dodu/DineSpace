@@ -156,77 +156,29 @@
 
 {
   "orderdetails": {
-    "tableId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-    "payable": 300,
-    "discount": 20,
-    "OrderstStatus": "pending",
-    "customerName": "Rafi",
-    "customerPhone": "01711111111"
-  },
-  "orderitems": [
-    {
-      "itemId": "11111111-2222-3333-4444-555555555555",
-      "quantity": 1,
-      "price": 150
-    },
-    {
-      "itemId": "66666666-7777-8888-9999-000000000000",
-      "quantity": 2,
-      "price": 75
-    }
-  ],
-  "paymentId": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
-}
-
-{
-  "orderdetails": {
-    "tableId": "4fa85f64-5717-4562-b3fc-2c963f66afa6",
-    "payable": 800,
+    "id": "string",
+    "tableId": "string",
+    "payable": 0,
     "discount": 0,
-    "OrderstStatus": "accepted",
-    "customerName": "Nadia",
-    "customerPhone": "01822222222"
+    "OrderstStatus": "string",
+    "customerName": "string",
+    "customerPhone": 0
   },
   "orderitems": [
     {
-      "itemId": "123e4567-e89b-12d3-a456-426614174000",
-      "quantity": 3,
-      "price": 200
-    },
-    {
-      "itemId": "123e4567-e89b-12d3-a456-426614174001",
-      "quantity": 1,
-      "price": 100
+      "itemId": "string",
+      "orderId": "string",
+      "quantity": 0,
+      "price": 0
     }
   ],
-  "paymentId": "bbbbbbbb-cccc-dddd-eeee-ffffffffffff"
+  "payment": {
+    "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "status": "pending",
+    "paymentMethode": "cash",
+    "transectionId": "txn_123456",
+    "acountNumber": "1234567890",
+    "orderId": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+  }
 }
 
-{
-  "orderdetails": {
-    "tableId": "5fa85f64-5717-4562-b3fc-2c963f66afa6",
-    "payable": 1200,
-    "discount": 100,
-    "OrderstStatus": "processing",
-    "customerName": "Kamal",
-    "customerPhone": "01933333333"
-  },
-  "orderitems": [
-    {
-      "itemId": "123e4567-e89b-12d3-a456-426614174002",
-      "quantity": 4,
-      "price": 250
-    },
-    {
-      "itemId": "123e4567-e89b-12d3-a456-426614174003",
-      "quantity": 2,
-      "price": 175
-    },
-    {
-      "itemId": "123e4567-e89b-12d3-a456-426614174004",
-      "quantity": 1,
-      "price": 50
-    }
-  ],
-  "paymentId": "cccccccc-dddd-eeee-ffff-000000000000"
-}

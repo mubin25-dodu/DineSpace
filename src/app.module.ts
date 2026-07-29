@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
+import { ReservationModule } from './reservation/reservation.module';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
@@ -16,36 +17,23 @@ import { PaymentModule } from './payment/payment.module';
 import { FeedbackModule } from './feedback/feedback.module';
 
 @Module({
-  imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-      expandVariables: true,
-      envFilePath: '.env',
-    }),
-    AuthModule,
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: process.env.DBHost ?? 'localhost',
-      port: Number(process.env.DBport ?? 5432),
-      username: process.env.DBusername,
-      password: process.env.DBpassword,
-      database: process.env.database,
-      ssl: { rejectUnauthorized: false },
-      extra: { rejectUnauthorized: false },
-      autoLoadEntities: true,
-      synchronize: false,
-    }),
-    UserModule,
-    ResturantModule,
-    MailModule,
-    VerificationRequestModule,
-    FilesModule,
-    MenuModule,
-    TablesModule,
-    OrderModule,
-    PaymentModule,
-    FeedbackModule,
-  ],
+  imports: [ConfigModule.forRoot({
+    isGlobal:true,
+    expandVariables:true,
+    envFilePath:'.env'
+  }),AuthModule, TypeOrmModule.forRoot({
+    type:'postgres',
+    host: process.env.DBHost ?? 'localhost',
+    port: Number(process.env.DBport ?? 5432),
+    username: process.env.DBusername,
+    password: process.env.DBpassword,
+    database: process.env.database,
+    ssl:{rejectUnauthorized: false} ,
+    extra: { rejectUnauthorized: false },
+    autoLoadEntities:true,
+    synchronize:false
+  }), ReservationModule,UserModule, ResturantModule, MailModule, VerificationRequestModule, FilesModule, MenuModule, TablesModule, OrderModule, PaymentModule],
+  
   controllers: [AppController],
   providers: [AppService],
 })

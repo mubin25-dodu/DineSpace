@@ -205,12 +205,12 @@ export class ResturantService {
         const result = new Result<null>;
     try{
         const checkResturantOwner = await this.Resreo.findOne({where:{id:resturantId , ownerid:user.userId}})
-        if(checkResturantOwner){
+        if(checkResturantOwner !==  null){
             await this.Resreo.remove(checkResturantOwner);
             result.Message = "Resturant deleted";
             return result;
         }
-        result.Message ="Resturant not found";
+        result.Message ="you are not the owner or wrong resturent Id";
         result.Success = false;
     }
     catch(e){

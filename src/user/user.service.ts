@@ -19,13 +19,13 @@ export class UserService {
     async adduser(user:UserDto):Promise<Result<UserDto>>{
         const result = new Result<UserDto>;
     try{
+        user.email = user.email.toLowerCase();
         if((await this.FIndbyemail(user.email)).Success ) {
             result.Message = "User with this email already exists";
             result.Success = false;
             return result;
         }
         user.role = "owner";
-        user.email = user.email.toLowerCase();
         const create = await this.userrepo.save(user); 
         if(create){
             result.Data = create;
@@ -47,6 +47,7 @@ export class UserService {
     async FIndbyemail(email):Promise<Result<users>>{
         const result = new Result<users>;
     try{
+        email = email.toLowerCase();
         const getuser = await this.userrepo.findOne({
             where:{email:email},
             select:{id:true, email:true, password:true, role:true} }
@@ -69,17 +70,17 @@ export class UserService {
     async UpdateEmail( user:any,updateuser:PartialUserDto):Promise<Result<PartialUserDto>>{
         const result = new Result<PartialUserDto>();
     try{
-        const check = await this.FIndbyemail((updateuser.email)?.toLowerCase);
-        if(check.Success){
-        result.Message ="Email Already in use";
-        result.Success = false;
-        return result;
-        }
-
         if(updateuser.email == undefined || updateuser.email == null){
             result.Message ="Enter an Email";
             result.Success = false;
             return result;
+        }
+        updateuser.email = updateuser.email.toLowerCase();
+        const check = await this.FIndbyemail(updateuser.email);
+        if(check.Success){
+        result.Message ="Email Already in use";
+        result.Success = false;
+        return result;
         }
 
         const finduser = await this.userrepo.findOne({where:{id:user.userId}});
@@ -163,7 +164,7 @@ export class UserService {
     async Updateuser(id:string , email:string):Promise<Result<users | null>>{
          const result = new Result<users | null>;
     try{
-        
+        email = email.toLowerCase();
         const find = await this.userrepo.findOne({where:{id:id}}); 
         if(!find){
             result.Message ="User not found";

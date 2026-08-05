@@ -14,30 +14,30 @@ import { Roles } from 'src/auth/Role/Roles.decorator';
 export class PaymentController {
   constructor(private readonly paymentService: PaymentService) {}
 
-  @Post("createPayment")
-  createPayment(@Body() data:PaymentDto):Promise<Result<Payment>>{
-    return this.paymentService.createPayment(data);
-  }
- // @Patch("PaymentStatus/:id/:status")
-  // togglestatus(@Body()data:partialPaymentDto, @Req() req:any):Promise<Result<Payment>>{
-  //   return this.paymentService.changestatus(data , req);
-  // }
+//   @Post("createPayment")
+//   createPayment(@Body() data:PaymentDto):Promise<Result<Payment>>{
+//     return this.paymentService.createPayment(data);
+//   }
+//  // @Patch("PaymentStatus/:id/:status")
+//   // togglestatus(@Body()data:partialPaymentDto, @Req() req:any):Promise<Result<Payment>>{
+//   //   return this.paymentService.changestatus(data , req);
+//   // }
 
-  @UseGuards(jwtGuard , RolesGuard)
-  @ApiBearerAuth('bearerAuth')
-  @Roles("admin" , "owner")
-  @Patch("updatePayment")
-  togglestatus(@Body()data:partialPaymentDto, @Req() req:any):Promise<Result<Payment>>{
-    return this.paymentService.updateinfo(data , req);
+//   @UseGuards(jwtGuard , RolesGuard)
+//   @ApiBearerAuth('bearerAuth')
+//   @Roles("admin" , "owner")
+//   @Patch("updatePayment")
+//   togglestatus(@Body()data:partialPaymentDto, @Req() req:any):Promise<Result<Payment>>{
+//     return this.paymentService.updateinfo(data , req);
 
-  }
+//   }
 
-  @UseGuards(jwtGuard , RolesGuard)
-  @ApiBearerAuth('bearerAuth')
-  @Roles("admin" , "owner")
-  @Get("GetpaymentByResturentId/:Resturentid")
-  getall(@Param("Resturentid")Resturentid:string, @Req() req:any):Promise<Result<Payment[]>>{
-    return this.paymentService.getallByResturent(Resturentid , req);
-  }
+//   @UseGuards(jwtGuard , RolesGuard)
+//   @ApiBearerAuth('bearerAuth')
+//   @Roles("admin" , "owner")
+//   @Get("GetpaymentByResturentId/:Resturentid")
+//   getall(@Param("Resturentid")Resturentid:string, @Req() req:any):Promise<Result<Payment[]>>{
+//     return this.paymentService.getallByResturent(Resturentid , req);
+//   }
  
 }

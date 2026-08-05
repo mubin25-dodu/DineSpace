@@ -28,6 +28,7 @@ export class AuthService {
                     result.Data = data;
                     return result;
                 }
+                data.email = data.email.toLowerCase();
                 if((await this.userService.FIndbyemail(data.email)).Success){
                     result.Message = "the email is already registred as a user"
                     result.Success = false;
@@ -84,6 +85,8 @@ export class AuthService {
     async register( uid:string , data:RegistrationDto):Promise<Result<RegistrationDto>>{
         const result = new Result<RegistrationDto>;
         try{
+            data.email = data.email.toLowerCase();
+            data.resturantemail = data.resturantemail.toLowerCase();
             const checkuid = await this.varRepo.findOne({where:{uid:uid , email:data.email}});
             if(checkuid != null){
                 const hashpassword = await bcrypt.hash(data.password , 10);
@@ -125,6 +128,7 @@ export class AuthService {
     async login(data:loginDto): Promise<string | Result<loginDto>> {
         const result = new Result<loginDto> 
         try{
+           data.email = data.email.toLowerCase();
            const getuser = await this.userService.FIndbyemail(data.email);
                 if(getuser.Success){
                     const storedHash = getuser.Data?.password;

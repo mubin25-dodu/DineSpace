@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
-import { ReservationModule } from './reservation/reservation.module';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
@@ -14,8 +13,6 @@ import { MenuModule } from './menu/menu.module';
 import { TablesModule } from './tables/tables.module';
 import { OrderModule } from './order/order.module';
 import { PaymentModule } from './payment/payment.module';
-import { FeedbackModule } from './feedback/feedback.module';
-import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [ConfigModule.forRoot({
@@ -32,8 +29,8 @@ import { AdminModule } from './admin/admin.module';
     ssl:{rejectUnauthorized: false} ,
     extra: { rejectUnauthorized: false },
     autoLoadEntities:true,
-    synchronize:false
-  }),FeedbackModule , AdminModule , ReservationModule,UserModule, ResturantModule, MailModule, VerificationRequestModule, FilesModule, MenuModule, TablesModule, OrderModule, PaymentModule],
+    synchronize:true
+  }) , UserModule, ResturantModule, MailModule, VerificationRequestModule, FilesModule, MenuModule, TablesModule, OrderModule, PaymentModule],
   
   controllers: [AppController],
   providers: [AppService],

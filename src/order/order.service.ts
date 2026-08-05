@@ -35,7 +35,7 @@ export class OrderService {
                 return result;
                 }
 
-                const getresturent = await this.ordrepo.find({relations:{table:true} , where:{table:{
+                const getresturent = await this.ordrepo.find({relations:{orderitems:true} , where:{table:{
                     resturantid:id , orderId:user.userId
                 }}});
                result.Data = getresturent ?? [];
@@ -86,13 +86,14 @@ export class OrderService {
               data.orderdetails.id  = orderId;
               const getresturent = await this.resrepo.findOne({where:{tables:{id:data.orderdetails.tableId} }, relations:{menu:true , tables:true}})
               
-              console.log(getresturent?.tables);
+            //   console.log(getresturent?.tables);
               if(getresturent === null){
                 result.Message = "no resturent or table found"
                 result.Success = false;
                 return result;
               }
-               const table = getresturent.tables?.[0];
+               
+              const table = getresturent.tables?.[0];
 
                if(table?.status !== TableStatus.Isavailable){
                 result.Message == `The table ${table?.status}`;

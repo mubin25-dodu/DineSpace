@@ -63,5 +63,10 @@ export class TablesController {
     return this.tablesService.tableStatus(id , req.user, TableStatus.isreserved);
   }
 
+  @Get('getTablesByResturantId/:id')
+  gettable(@Param("id") id:string): Promise<Result<Tables[]>> {
+    return this.tablesService.gettable(id);
+  }
+
   
 }

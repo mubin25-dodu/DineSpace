@@ -7,8 +7,6 @@ import { jwtGuard } from 'src/auth/jwtGuard.guard';
 import { RolesGuard } from 'src/auth/Role/Roles.Guard';
 import { Result } from 'src/SharedServices/Result';
 import { MenuDto } from './Dto/menu.Dto';
-import { FilesInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
 
 @Controller('menu')
 export class MenuController {

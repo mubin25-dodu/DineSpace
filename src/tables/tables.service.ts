@@ -185,6 +185,23 @@ export class TablesService {
             return result;
         }
     }
+    
+    async gettable(id:string ):Promise<Result<Tables[]>> {
+        const result = new Result<Tables[]>();
+        try {
+            const gettable = await this.tablerepo.find({ where: { resturantid:id } });
+        
+            result.Data =  gettable;
+            result.Message = `${gettable.length} Tables Found `;
+            result.Success = true;
+            return result;
+        } catch (e) {
+            result.Message = String(e);
+            result.Success = false;
+            result.Data = undefined;
+            return result;
+        }
+    }
 
     async checkdupes(data:any[]):Promise<number>{
         const length = new Set(data).size;

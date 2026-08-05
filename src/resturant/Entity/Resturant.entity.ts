@@ -33,7 +33,7 @@ export class Resturant {
 
     @Column({ type: "varchar", length: 255 })
     @IsEmail()
-    Resturantemail!: string;
+    resturantemail!: string;
 
     @Column({ type: "varchar", length: 20 })
     @Matches(/^(?:1[0-2]|0?[1-9]):[0-5]\d\s?(?:[Aa][Mm]|[Pp][Mm])$/, { message: "Time must be in 12-hour format with AM/PM (e.g., 12:40 PM or 09:30 AM)." })

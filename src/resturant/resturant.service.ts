@@ -15,7 +15,13 @@ export class ResturantService {
     async addresturant(data: ResturantDto): Promise<Result<ResturantDto>> {
         const result = new Result<ResturantDto>;
         try {
-            const check = await this.Findbyemail(data.Resturantemail) || await this.Findbyphone(data.phone);
+            if(data.id != null || data.id != undefined) {
+                result.Message = "Can not have uid when creating a resturent";
+                result.Success = false;
+                return result; 
+            }
+            data.resturantemail = data.resturantemail.toLowerCase();
+            const check = await this.Findbyemail(data.resturantemail) || await this.Findbyphone(data.phone);
 
             if (check.Success) {
                 result.Message = check.Message;
@@ -39,7 +45,8 @@ export class ResturantService {
     async Findbyemail(email: string): Promise<Result<ResturantDto>> {
         const result = new Result<ResturantDto>;
         try {
-            const create = await this.Resreo.findOne({ where: { Resturantemail: email } });
+            email = email.toLowerCase();
+            const create = await this.Resreo.findOne({ where: { resturantemail: email } });
             if (create != null) {
                 result.Data = create;
                 result.Message = `Resturant with email ${email} Found`;
@@ -112,7 +119,7 @@ export class ResturantService {
             //     return result;
             // }
 
-            if(data.Resturantemail!== undefined || data.phone !== undefined){
+            if(data.resturantemail!== undefined || data.phone !== undefined){
                  result.Message ="Can not update email and Phone At this moment";
                 result.Success = false;
                 return result;
@@ -128,6 +135,7 @@ export class ResturantService {
                 result.Success = false;
                 return result;
             }
+            data.ownerid = user.userId;
 
             Object.assign(getresturent.Data , data)
             const create = await this.Resreo.save(getresturent.Data);
@@ -151,11 +159,10 @@ export class ResturantService {
             const search = await this.Resreo.find({
                 where: [
                     { resturantName: Like(`%${term}%`) },
-                    { Resturantemail: Like(`%${term}%`) },
+                    { resturantemail: Like(`%${term}%`) },
                     { address: Like(`%${term}%`) } ,
 
-                ],
-                relations:{owner:true , tables:true , menu:true , files:true}
+                ]
             });
             if (search != null) {
                 result.Data = search;

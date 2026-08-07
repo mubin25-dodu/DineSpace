@@ -8,6 +8,7 @@ import { ResturantService } from 'src/resturant/resturant.service';
 import { ResturantDto } from 'src/resturant/DTO/Resturant.Dto';
 import { PartialTableDto } from './Dto/PartialTable.dto';
 import { Resturant } from 'src/resturant/Entity/Resturant.entity';
+import { TableStatus } from './Enum/tablestatus.enum';
 
 @Injectable()
 export class TablesService {
@@ -16,11 +17,11 @@ export class TablesService {
         private readonly resturantservice: ResturantService,
     ) {}
 
-    async creatTable(table: TableDto[] , user:any): Promise<Result<Tables[] |ResturantDto >> {
+    async creatTable(table: TableDto[] , user:any): Promise<Result<Tables[] | ResturantDto >> {
         const result = new Result< ResturantDto|Tables[] >();
         try {
-           const checkids = table.filter((e)=> e.id !== undefined);
-            if(checkids.length > 0){
+           const checkids = table.some((e)=> e.id !== undefined);
+            if(checkids){
                 result.Message = "can not provide ids when creating a table";
                 result.Success = false;
                 return result;
@@ -118,20 +119,6 @@ export class TablesService {
             }
 
             const create = await this.tablerepo.save(table);
-            if (create== null) {
-                result.Message = "Couldn't create the table";
-                result.Success = false;
-                return result;
-            }
-
-            // const restaurantResult = await this.resturantservice.FindbyID(table[0].resturantid!);
-            // if (!restaurantResult.Success || !restaurantResult.Data) {
-            //     result.Message = restaurantResult.Message || 'Restaurant not found';
-            //     result.Success = false;
-            //     return result;
-            // }
-
-            // result.Data = restaurantResult.Data;
             result.Data = create;
             result.Message = 'Restaurant returned successfully';
             return result;
@@ -160,6 +147,52 @@ export class TablesService {
             await this.tablerepo.delete(id);
             result.Data = isowner.Data;
             result.Message = 'Table deleted successfully';
+            result.Success = true;
+            return result;
+        } catch (e) {
+            result.Message = String(e);
+            result.Success = false;
+            result.Data = undefined;
+            return result;
+        }
+    }
+
+    async tableStatus(id:string , user:any , status:TableStatus):Promise<Result<Tables>> {
+        const result = new Result<Tables>();
+        try {
+            const getresturant = await this.tablerepo.findOne({ where: { id:id } });
+            if (!getresturant) {
+                result.Message = "table not found";
+                result.Success = false;
+                return result;
+            }
+            const isowner = await this.resturantservice.checkResturantowner(getresturant.resturantid, user.userId);
+            if (!isowner.Success) {
+                result.Message = "Not a valid owner of this resturant";
+                result.Success = false;
+                return result;
+            }
+           
+            getresturant.status = status;
+            result.Data =  await this.tablerepo.save(getresturant);
+            result.Message = 'Table ststus Updated successfully';
+            result.Success = true;
+            return result;
+        } catch (e) {
+            result.Message = String(e);
+            result.Success = false;
+            result.Data = undefined;
+            return result;
+        }
+    }
+    
+    async gettable(id:string ):Promise<Result<Tables[]>> {
+        const result = new Result<Tables[]>();
+        try {
+            const gettable = await this.tablerepo.find({ where: { resturantid:id } });
+        
+            result.Data =  gettable;
+            result.Message = `${gettable.length} Tables Found `;
             result.Success = true;
             return result;
         } catch (e) {

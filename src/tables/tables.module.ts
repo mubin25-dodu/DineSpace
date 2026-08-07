@@ -9,5 +9,6 @@ import { ResturantModule } from 'src/resturant/resturant.module';
   imports: [TypeOrmModule.forFeature([Tables]), ResturantModule],
   controllers: [TablesController],
   providers: [TablesService],
+  exports:[TablesService]
 })
 export class TablesModule {}

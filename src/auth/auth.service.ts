@@ -28,6 +28,17 @@ export class AuthService {
                     result.Data = data;
                     return result;
                 }
+                data.email = data.email.toLowerCase();
+                if((await this.userService.FIndbyemail(data.email)).Success){
+                    result.Message = "the email is already registred as a user"
+                    result.Success = false;
+                    return result;
+                }
+                if((await this.ResturantService.Findbyemail(data.email)).Success){
+                    result.Message = "the email is already registred as a resturent"
+                    result.Success = false;
+                    return result;
+                } 
                 const create = await this.varRepo.save({email:data.email , uid: randomUUID()}); 
                 if(create){
                     const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:3000';
@@ -74,6 +85,8 @@ export class AuthService {
     async register( uid:string , data:RegistrationDto):Promise<Result<RegistrationDto>>{
         const result = new Result<RegistrationDto>;
         try{
+            data.email = data.email.toLowerCase();
+            data.resturantemail = data.resturantemail.toLowerCase();
             const checkuid = await this.varRepo.findOne({where:{uid:uid , email:data.email}});
             if(checkuid != null){
                 const hashpassword = await bcrypt.hash(data.password , 10);
@@ -81,8 +94,8 @@ export class AuthService {
                 
                 const adduser = await this.userService.adduser(data);
                 if(adduser.Success){
-                    this.varRepo.remove(checkuid);
-                    data.ownerid = adduser.Data?.id || '';
+                   await this.varRepo.remove(checkuid);
+                    data.ownerid = adduser.Data!.id || '';
                     const resturant = await this.ResturantService.addresturant(data);
                     if(resturant.Success){
                         result.Data = data;
@@ -115,6 +128,7 @@ export class AuthService {
     async login(data:loginDto): Promise<string | Result<loginDto>> {
         const result = new Result<loginDto> 
         try{
+           data.email = data.email.toLowerCase();
            const getuser = await this.userService.FIndbyemail(data.email);
                 if(getuser.Success){
                     const storedHash = getuser.Data?.password;
@@ -146,7 +160,7 @@ export class AuthService {
                     result.Success = true;
                     return result;
                 }
-                    result.Message="User Not Found";
+                    result.Message = getuser.Message;
                     result.Data = data;
                     result.Success = false;
                     return result;

@@ -4,22 +4,10 @@ import { PaymentStatus } from "../Enum/PaymentStatus.enum";
 import { paymentMethod } from "../Enum/PaymentMethode.enum";
 
 export class PaymentDto {
-    @IsUUID()
-    @ApiProperty()
-    id?: string;
-
-    @IsNotEmpty()
-    @ApiProperty({ enum: PaymentStatus, example: PaymentStatus.Pending })
-    @IsEnum(PaymentStatus)
-    status: PaymentStatus = PaymentStatus.Pending;
 
     @ApiProperty({ enum: paymentMethod, example: paymentMethod.Cash })
     @IsEnum(paymentMethod)
     paymentMethode: paymentMethod = paymentMethod.Cash;
-
-    @IsOptional()
-    @ApiProperty({ required: false, example: "txn_123456" })
-    transectionId?: string;
 
     @IsOptional()
     @ApiProperty({ required: false, example: "1234567890" })

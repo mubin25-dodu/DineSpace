@@ -8,12 +8,10 @@ import { OrderedItems } from './Entity/OrdredItems.entity';
 import { PaymentStatus } from 'src/payment/Enum/PaymentStatus.enum';
 import { PaymentService } from 'src/payment/payment.service';
 import { filterDto } from './Dto/Filterorder.dto';
-import { table } from 'console';
-import { TablesService } from 'src/tables/tables.service';
 import { Resturant } from 'src/resturant/Entity/Resturant.entity';
 import { randomUUID } from 'crypto';
-import { Tables } from 'src/tables/Entity/Tables.entity';
 import { TableStatus } from 'src/tables/Enum/tablestatus.enum';
+import { paymentMethod } from 'src/payment/Enum/PaymentMethode.enum';
 
 @Injectable()
 export class OrderService {
@@ -72,7 +70,7 @@ export class OrderService {
                result.Data = getresturent ?? [];
                result.Message = `${getresturent.length} Orders found`;
             } catch (e) {
-                result.Message = String(e);
+                result.Message = String(e);  
                 result.Success = false;
             }
                return result;
@@ -100,19 +98,39 @@ export class OrderService {
                 result.Success = false ;
                 return result;
                }
+            
+               if(data.payment.acountNumber == undefined ){
+                result.Message = "Enter Account Number missing";
+                result.Success = false;
+                return result;
+               }
 
-              if(getresturent.payfirst == true && data.payment.status !== PaymentStatus.Paid){
+               if(data.payment.paymentMethode == undefined ){
+                result.Message = "Select a payment methode";
+                result.Success = false;
+                return result;
+               }
+
+               if(getresturent.payfirst == true && data.payment.paymentMethode === paymentMethod.Card){
+                result.Message = "Go to The Counter to Pay In cash and Order"
+                result.Success = false;
+                return result;
+               }
+
+              const makepayment = await this.paymentService.makepayment(data.payment);
+              if(!makepayment.Success){
+                result.Message = "Paymnent Failed";
+                result.Success = false;
+                return result;
+              }
+              if(getresturent.payfirst == true && makepayment.Data?.status !== PaymentStatus.Paid){
                 result.Message = "Pay first"
                 result.Success = false;
                 return result;
               }
-              if( data.payment.transectionId == undefined || data.payment.acountNumber == undefined ){
-                result.Message = "Enter the payment details";
-                result.Success = false;
-                return result;
-              }
+             
+            //refactoring the order prices
 
-            //   refactoring the order prices
             data.orderdetails.payable = 0;
             for(let i = 0 ; i < data.orderitems.length ; i++){
                 for(let j = 0 ; j < getresturent.menu!.length ; j++){
@@ -126,7 +144,6 @@ export class OrderService {
                     data.orderitems[i].orderId = orderId;
                 }
              const saveorder = await this.ordrepo.save(data.orderdetails);  
-             
              const saveorderitems = await this.orditemrepo.save(data.orderitems);
              const payment = await  this.paymentService.createPayment(data.payment);
              if(!payment.Success){

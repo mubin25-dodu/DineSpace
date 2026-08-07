@@ -38,7 +38,7 @@ export class AuthService {
                     result.Message = "the email is already registred as a resturent"
                     result.Success = false;
                     return result;
-                }
+                } 
                 const create = await this.varRepo.save({email:data.email , uid: randomUUID()}); 
                 if(create){
                     const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:3000';

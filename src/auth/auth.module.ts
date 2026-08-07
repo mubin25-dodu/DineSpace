@@ -23,7 +23,7 @@ import { RolesGuard } from './Role/Roles.Guard';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('secretjwtkey'),
-        signOptions: { expiresIn: '1D' }
+        signOptions: { expiresIn: '1h' }
       })
     })
   ],

@@ -9,9 +9,7 @@ export class VerificationRequestController {
 
   @Get("verify/:token")
   verifyToken(@Param("token") token:string):Promise<Result<string | null>>{
-
     return this.verificationRequestService.verifyToken(token);
-
   }
 
 }

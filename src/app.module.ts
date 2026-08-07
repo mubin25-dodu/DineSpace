@@ -11,6 +11,8 @@ import { VerificationRequestModule } from './verification-request/verification-r
 import { FilesModule } from './files/files.module';
 import { MenuModule } from './menu/menu.module';
 import { TablesModule } from './tables/tables.module';
+import { OrderModule } from './order/order.module';
+import { PaymentModule } from './payment/payment.module';
 
 @Module({
   imports: [ConfigModule.forRoot({
@@ -28,7 +30,7 @@ import { TablesModule } from './tables/tables.module';
     extra: { rejectUnauthorized: false },
     autoLoadEntities:true,
     synchronize:true
-  }), UserModule, ResturantModule, MailModule, VerificationRequestModule, FilesModule, MenuModule, TablesModule],
+  }) , UserModule, ResturantModule, MailModule, VerificationRequestModule, FilesModule, MenuModule, TablesModule, OrderModule, PaymentModule],
   
   controllers: [AppController],
   providers: [AppService],

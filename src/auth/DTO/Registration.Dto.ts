@@ -12,7 +12,7 @@ export class RegistrationDto{
     email!:string;
     @ApiProperty()
     @IsEmail()
-    Resturantemail!:string;
+    resturantemail!:string;
     @IsNotEmpty()
     @ApiProperty()
      @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/, 

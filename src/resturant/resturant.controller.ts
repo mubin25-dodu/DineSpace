@@ -6,9 +6,6 @@ import { jwtGuard } from 'src/auth/jwtGuard.guard';
 import { RolesGuard } from 'src/auth/Role/Roles.Guard';
 import { Roles } from 'src/auth/Role/Roles.decorator';
 import { ApiBearerAuth } from '@nestjs/swagger';
-import { diskStorage } from 'multer';
-import { FilesInterceptor } from '@nestjs/platform-express';
-import { fileEnum } from 'src/files/Enum/files.Enum';
 import { Resturant } from './Entity/Resturant.entity';
 import { PartialResturantDto } from './DTO/ParticalResturant.Dto';
 
@@ -21,9 +18,23 @@ export class ResturantController {
   @Roles('owner')
   @Post("CreateResturant")
   async Addresturant(@Req() req:any, @Body() data:ResturantDto):Promise<Result<ResturantDto>>{
-    // console.log(req)
     data.ownerid = req.user.userId;
     return  await this.resturantService.addresturant(data);
+  }
+
+  @ApiBearerAuth('bearerAuth')
+  @UseGuards(jwtGuard,RolesGuard)
+  @Roles('admin' , "owner")
+  @Get("getallresturents")
+  async getall(@Req() req:any):Promise<Result<Resturant[]>>{
+    return  await this.resturantService.getall(req.user);
+  }
+  @ApiBearerAuth('bearerAuth')
+  @UseGuards(jwtGuard,RolesGuard)
+  @Roles('admin' , "owner")
+  @Get("getResturentById/:id")
+  async getById(@Param('id') id:string , @Req() req:any):Promise<Result<Resturant>>{
+    return  await this.resturantService.FindbyID(id);
   }
 
   @UseGuards(jwtGuard,RolesGuard)
@@ -31,8 +42,7 @@ export class ResturantController {
   @Roles('owner')
   @Patch("UpdateResturant")
   async Updateresturant( @Req() req:any , @Body() data:PartialResturantDto):Promise<Result<PartialResturantDto>>{
-    data.ownerid = req.user.userId;
-    return  await this.resturantService.Updateresturant(data);
+    return  await this.resturantService.Updateresturant(data , req.user);
   }
 
   //anyone can search with term(name email phone address)
@@ -49,50 +59,51 @@ export class ResturantController {
     return result;
   }
 
-  @UseGuards(jwtGuard,RolesGuard)
-  @ApiBearerAuth('bearerAuth')
-  @Roles('owner')
-  @Post("uploadImages/:id")
-  @UseInterceptors(FilesInterceptor('file' , 2 ,{
-    storage: diskStorage({
-      destination:'./uploads',
-      filename: (req , file , cb)=>{
-        const filename = Date.now()+"-"+ file.originalname;
-        cb( null , filename);
-      }
-    }),
-    fileFilter:(res, file , cb)=>{
-      if(file.originalname.match(/^.*\.(jpg|jpeg|png)$/))
-      {
-        cb(null , true);
-      }else{
-        cb( new BadRequestException("Only Images with extention 'jpg' , 'jpeg' and 'png' are acceptable ") , false)
-      }
-    },
-    limits:{
-      fileSize:  3 * 1024 * 1024
-    }
-  }))
-  async uploadfiles( @UploadedFiles() file: Express.Multer.File[] , @Param() id:string , 
-  @Req() req:any):Promise<Result<Resturant | null>>{
-
-    const result = new Result<Resturant|null>;
-    if (!file || file === undefined) {
-      result.Message = "NO file was Uploaded";
-      result.Success = false;
-      return result;
-    }
-    console.log(file , id);
-    
-    return await this.resturantService.Uploadfiles(file , id , fileEnum.Resturant , req.user.userId);
-  }
+  
     @ApiBearerAuth('bearerAuth')
     @UseGuards(jwtGuard, RolesGuard)
     @Roles('owner')
-    @Delete("DeleteUser/:Id")
-    deleteuser(@Param("Id") Id:string , @Req() req:any):Promise<Result<null>>{
+    @Delete("DeleteResturant/:Id")
+    deletrResturent(@Param("Id") Id:string , @Req() req:any):Promise<Result<null>>{
       return this.resturantService.deleteresturant(req.user , Id);
   
     }
 
+// @UseGuards(jwtGuard,RolesGuard)
+//   @ApiBearerAuth('bearerAuth')
+//   @Roles('owner')
+//   @Post("uploadImages/:id")
+//   @UseInterceptors(FilesInterceptor('file' , 2 ,{
+//     storage: diskStorage({
+//       destination:'./uploads',
+//       filename: (req , file , cb)=>{
+//         const filename = Date.now()+"-"+ file.originalname;
+//         cb( null , filename);
+//       }
+//     }),
+//     fileFilter:(res, file , cb)=>{
+//       if(file.originalname.match(/^.*\.(jpg|jpeg|png)$/))
+//       {
+//         cb(null , true);
+//       }else{
+//         cb( new BadRequestException("Only Images with extention 'jpg' , 'jpeg' and 'png' are acceptable ") , false)
+//       }
+//     },
+//     limits:{
+//       fileSize:  3 * 1024 * 1024
+//     }
+//   }))
+//   async uploadfiles( @UploadedFiles() file: Express.Multer.File[] , @Param() id:string , 
+//   @Req() req:any):Promise<Result<Resturant | null>>{
+
+//     const result = new Result<Resturant|null>;
+//     if (!file || file === undefined) {
+//       result.Message = "NO file was Uploaded";
+//       result.Success = false;
+//       return result;
+//     }
+//     console.log(file , id);
+    
+//     return await this.resturantService.Uploadfiles(file , id , fileEnum.Resturant , req.user.userId);
+//   }
 }

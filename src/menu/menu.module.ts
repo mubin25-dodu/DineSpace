@@ -8,5 +8,7 @@ import { menu } from './Entity/menu.entity';
   imports:[TypeOrmModule.forFeature([menu])],
   controllers: [MenuController],
   providers: [MenuService],
+  exports:[MenuService]
 })
 export class MenuModule {}
+ 

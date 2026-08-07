@@ -13,7 +13,7 @@ export class users {
     @Column({ type: "varchar", length: 255 })
     password!: string;
 
-    @Column({ type: "varchar", length: 10 })
+    @Column({ type: "varchar", length: 10 , default:"owner" })
     role: string = "owner";
 
     @OneToMany(() => Resturant, (restaurant) => restaurant.owner)

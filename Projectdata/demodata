@@ -3,7 +3,6 @@
   "email": "mubin9516@gmail.com",
   "Resturantemail": "dinespace@restaurant.com",
   "password": "Admin123!@",
-  "role": "owner",
   "resturantName": "DineSpace Hub",
   "address": "Gulshan, Dhaka",
   "isopen": true,
@@ -16,7 +15,6 @@
   "email": "sajid@foodhouse.com",
   "Resturantemail": "foodhouse@restaurant.com",
   "password": "Admin123!@",
-  "role": "owner",
   "resturantName": "FoodHouse Grill",
   "address": "Bashundhara, Dhaka",
   "isopen": false,
@@ -29,7 +27,6 @@
   "email": "maria@tandoori.com",
   "Resturantemail": "tandoori@restaurant.com",
   "password": "Admin123!@",
-  "role": "owner",
   "resturantName": "Tandoori Delight",
   "address": "Mirpur, Dhaka",
   "isopen": true,
@@ -43,7 +40,6 @@
   "email": "arif@spicezone.com",
   "Resturantemail": "spicezone@restaurant.com",
   "password": "Admin123!@",
-  "role": "owner",
   "resturantName": "Spice Zone",
   "address": "Uttara, Dhaka",
   "isopen": true,
@@ -113,3 +109,76 @@
     "payfirst": false
   }
 ]
+
+///menu data 
+[
+  {
+    "resturentId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "itemName": "Chicken Burger",
+    "price": 250,
+    "description": "Spicy grilled chicken burger",
+    "isAvailable": true,
+    "catagory": "Fast Food"
+  },
+  {
+    "resturentId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "itemName": "Pizza",
+    "price": 550,
+    "description": "Cheesy pizza with tomato sauce",
+    "isAvailable": true,
+    "catagory": "Italian"
+  }
+]
+
+//table data 
+[
+  {
+    "status": "AVAILABLE",
+    "tableno": 1,
+    "seatCapacity": 4,
+    "resturantid": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+  },
+  {
+    "status": "AVAILABLE",
+    "tableno": 2,
+    "seatCapacity": 2,
+    "resturantid": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+  },
+  {
+    "status": "RESERVED",
+    "tableno": 3,
+    "seatCapacity": 6,
+    "resturantid": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+  }
+]
+
+//place order data 
+
+{
+  "orderdetails": {
+    "id": "string",
+    "tableId": "string",
+    "payable": 0,
+    "discount": 0,
+    "OrderstStatus": "string",
+    "customerName": "string",
+    "customerPhone": 0
+  },
+  "orderitems": [
+    {
+      "itemId": "string",
+      "orderId": "string",
+      "quantity": 0,
+      "price": 0
+    }
+  ],
+  "payment": {
+    "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "status": "pending",
+    "paymentMethode": "cash",
+    "transectionId": "txn_123456",
+    "acountNumber": "1234567890",
+    "orderId": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+  }
+}
+

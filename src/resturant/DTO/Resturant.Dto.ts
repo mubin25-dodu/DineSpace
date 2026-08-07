@@ -30,7 +30,7 @@ export class ResturantDto {
     @IsEmail()
     @IsNotEmpty()
     @ApiProperty()
-    Resturantemail!: string;
+    resturantemail!: string;
     @IsNotEmpty()
     @Matches(/^(?:1[0-2]|0?[1-9]):[0-5]\d\s?(?:[Aa][Mm]|[Pp][Mm])$/, {message: "Time must be in 12-hour format with AM/PM (e.g., 12:40 PM or 09:30 AM)."})
     @ApiProperty()

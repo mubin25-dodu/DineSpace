@@ -29,7 +29,7 @@ import { PaymentModule } from './payment/payment.module';
     ssl:{rejectUnauthorized: false} ,
     extra: { rejectUnauthorized: false },
     autoLoadEntities:true,
-    synchronize:true
+    synchronize:false
   }) , UserModule, ResturantModule, MailModule, VerificationRequestModule, FilesModule, MenuModule, TablesModule, OrderModule, PaymentModule],
   
   controllers: [AppController],

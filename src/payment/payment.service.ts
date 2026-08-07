@@ -11,49 +11,49 @@ import { PaymentStatus } from './Enum/PaymentStatus.enum';
 export class PaymentService {
     constructor(@InjectRepository(Payment) private readonly paymentrepo:Repository<Payment>){}
 
-    // async createPayment(data:PaymentDto):Promise<Result<Payment>> {
-    //         const result = new Result<Payment>();
-    //         try {
-    //             result.Data = await this.paymentrepo.save(data);
-    //             result.Message = "Payment created";
-    //             //send a notification at this pont using websocket
-    //         } catch (e) {
-    //             result.Message = String(e);
-    //             result.Success = false;
-    //         }
-    //             return result;
-    //     }
+    async createPayment(data:PaymentDto):Promise<Result<Payment>> {
+            const result = new Result<Payment>();
+            try {
+                result.Data = await this.paymentrepo.save(data);
+                result.Message = "Payment created";
+                //send a notification at this pont using websocket
+            } catch (e) {
+                result.Message = String(e);
+                result.Success = false;
+            }
+                return result;
+        }
 
-    // async updateinfo(data:partialPaymentDto , user:any):Promise<Result<Payment>> {
-    //         const result = new Result<Payment>();
-    //         try {
-    //             if(data.id === undefined){
-    //             result.Message = "Missing id Required";
-    //             result.Success = false;
-    //             return result;
-    //             }
-    //             const getpayment = await this.paymentrepo.findOne({where:{id:data.id}, relations:{order:{
-    //                 table:{resturant:true}
-    //             }}});
-    //             if(getpayment== null){
-    //             result.Message = "the payment id could not be found";
-    //             result.Success = false;
-    //             return result;
-    //             } 
-    //             if(getpayment.order?.table?.resturant.ownerid !== user.userId && user.role !=="admin")
-    //             {
-    //             result.Message = "you do not have permission to perform this task";
-    //             result.Success = false;
-    //             return result;
-    //             }
-    //             result.Data = await this.paymentrepo.save(getpayment);
-    //             result.Message = "Payment updated"
-    //         } catch (e) {
-    //             result.Message = String(e);
-    //             result.Success = false;
-    //         }
-    //             return result;
-    // }
+    async updateinfo(data:partialPaymentDto , user:any):Promise<Result<Payment>> {
+            const result = new Result<Payment>();
+            try {
+                if(data.id === undefined){
+                result.Message = "Missing id Required";
+                result.Success = false;
+                return result;
+                }
+                const getpayment = await this.paymentrepo.findOne({where:{id:data.id}, relations:{order:{
+                    table:{resturant:true}
+                }}});
+                if(getpayment== null){
+                result.Message = "the payment id could not be found";
+                result.Success = false;
+                return result;
+                } 
+                if(getpayment.order?.table?.resturant.ownerid !== user.userId && user.role !=="admin")
+                {
+                result.Message = "you do not have permission to perform this task";
+                result.Success = false;
+                return result;
+                }
+                result.Data = await this.paymentrepo.save(getpayment);
+                result.Message = "Payment updated"
+            } catch (e) {
+                result.Message = String(e);
+                result.Success = false;
+            }
+                return result;
+    }
     async getallByResturent(resturentId:string , user:any):Promise<Result<Payment[]>> {
             const result = new Result<Payment[]>();
             try {

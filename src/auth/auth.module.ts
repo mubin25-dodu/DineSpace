@@ -23,11 +23,12 @@ import { RolesGuard } from './Role/Roles.Guard';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('secretjwtkey'),
-        signOptions: { expiresIn: '1h' }
+        signOptions: { expiresIn: '1d' }
       })
     })
   ],
   controllers: [AuthController],
   providers: [AuthService , MailService , JwtStrategy , jwtGuard , RolesGuard],
+  exports: [JwtModule],
 })
 export class AuthModule {}

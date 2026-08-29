@@ -49,8 +49,7 @@ export class UserService {
     try{
         email = email.toLowerCase();
         const getuser = await this.userrepo.findOne({
-            where:{email:email},
-            select:{id:true, email:true, password:true, role:true} }
+            where:{email:email} , relations:{resturants:true} }
         );
         if(getuser){
             result.Data = getuser;
@@ -204,5 +203,4 @@ export class UserService {
     }
         return result;
     }
-    
 }

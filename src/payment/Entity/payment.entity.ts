@@ -1,7 +1,8 @@
-import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { PaymentStatus } from "../Enum/PaymentStatus.enum";
 import { paymentMethod } from "../Enum/PaymentMethode.enum";
 import { Order } from "src/order/Entity/Order.entity";
+import { Wallet } from "src/wallet/Entity/wallet.entity";
 
 @Entity()
 export class Payment{
@@ -18,11 +19,29 @@ export class Payment{
     transectionId?:string;
 
     @Column({type:"int" , nullable:true})
-    acountNumber?:string;
+    acountNumber!:string;
+
+    @Column({type:"decimal", nullable:false , precision: 10,
+    scale: 2})
+    amount!:number;
 
     @Column({type:"uuid"})
     orderId?:string;
 
-    @OneToOne(() => Order, (order) => order.payment)
+    @Column({ type: "uuid", nullable: true })
+    walletId?: string;
+
+    @OneToOne(() => Order, (order) => order.payment )
+    @JoinColumn({name:"orderId" })
     order?: Order;
+
+    @ManyToOne(() => Wallet, (wallet) => wallet.payments, {
+        nullable: true,
+        onDelete: "SET NULL",
+    })
+    @JoinColumn({ name: "walletId" })
+    wallet?: Wallet;
+
+    @Column({type:Date , default: new Date()})
+    createdat!:Date;
 }

@@ -44,14 +44,14 @@ export class TablesController {
   @Roles('owner')
   @Patch('TableMakeaAvailable/:id')
   Tableisavailabe(@Param("id") id:string, @Req() req:any): Promise<Result<Tables>> {
-    return this.tablesService.tableStatus(id , req.user, TableStatus.Isavailable);
+    return this.tablesService.tableStatus(id , req.user, TableStatus.Available);
   }
   @ApiBearerAuth('bearerAuth')
   @UseGuards(jwtGuard, RolesGuard)
   @Roles('owner')
   @Patch('TableMakeaoccupied/:id')
   tableoccupied(@Param("id") id:string, @Req() req:any): Promise<Result<Tables>> {
-    return this.tablesService.tableStatus(id , req.user, TableStatus.isoccupied);
+    return this.tablesService.tableStatus(id , req.user, TableStatus.Occupied);
   }
  
 
@@ -60,7 +60,15 @@ export class TablesController {
   @Roles('owner')
   @Patch('TableMakereserved/:id')
   tablereserve(@Param("id") id:string, @Req() req:any): Promise<Result<Tables>> {
-    return this.tablesService.tableStatus(id , req.user, TableStatus.isreserved);
+    return this.tablesService.tableStatus(id , req.user, TableStatus.Reserved);
+  }
+  
+  @ApiBearerAuth('bearerAuth')
+  @UseGuards(jwtGuard, RolesGuard)
+  @Roles('owner')
+  @Patch('TableMakeCleaning/:id')
+  cleaning(@Param("id") id:string, @Req() req:any): Promise<Result<Tables>> {
+    return this.tablesService.tableStatus(id , req.user, TableStatus.Cleaning);
   }
 
   @Get('getTablesByResturantId/:id')

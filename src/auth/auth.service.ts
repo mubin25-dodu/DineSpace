@@ -12,6 +12,8 @@ import { varification } from './Entity/verification.entity';
 import { MailService } from 'src/mail/mail.service';
 import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
+import { emit } from 'process';
+import { users } from 'src/user/Entity/users.entity';
 
 @Injectable()
 export class AuthService {
@@ -39,10 +41,32 @@ export class AuthService {
                     result.Success = false;
                     return result;
                 } 
-                const create = await this.varRepo.save({email:data.email , uid: randomUUID()}); 
+                const check = await this.varRepo.findOne({where:{email:data.email}});
+                let create;
+
+                if(check!==null){
+                    const cooldownUntil = new Date(check.sendAt).getTime() + 60 * 60 * 1000;
+                    if(Date.now() < cooldownUntil){
+                        result.Success = false;
+                        result.Message = 'Please wait 1 hour before requesting again';
+                        result.Data = data;
+                        return result;
+                    }
+
+                    check.uid = randomUUID();
+                    check.sendAt = new Date();
+                    create = await this.varRepo.save(check);
+                } else {
+                    create = await this.varRepo.save({
+                        email: data.email,
+                        uid: randomUUID(),
+                        sendAt: new Date(),
+                    });
+                }
+
                 if(create){
                     const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:3000';
-                    const verificationLink = `${frontendUrl}/auth/register/${create.uid}`;
+                    const verificationLink = `${frontendUrl}/registration/${create.uid}`;
                     const obj = {
                             recipients:[data.email],
                             subject:"Verify Your Mail For DiseSpace",
@@ -103,7 +127,7 @@ export class AuthService {
                         return result;
                     }
                     result.Success = false;
-                    result.Message = "User Created Succesfully Could Not Create the resturant Email already exists";
+                    result.Message = "User Created Succesfully But Could Not Create the resturant , Resturent Email already in use or Phone number already in use";
                     result.Data = data;
                     return result;
                 }
@@ -125,8 +149,8 @@ export class AuthService {
         return result;
     }
 
-    async login(data:loginDto): Promise<string | Result<loginDto>> {
-        const result = new Result<loginDto> 
+    async login(data:loginDto): Promise<string | Result<loginDto | Omit<users, 'password' | 'resturants'>>> {
+        const result = new Result<loginDto | Omit<users, 'password' | 'resturants'>> 
         try{
            data.email = data.email.toLowerCase();
            const getuser = await this.userService.FIndbyemail(data.email);
@@ -155,8 +179,10 @@ export class AuthService {
                         email:getuser.Data?.email,
                         role:getuser.Data?.role
                     }
+                    const { password: _password, resturants: _resturants, ...publicUser } = getuser.Data!;
+                    result.Data = publicUser;
                     result.Message = "Success";
-                    result.tocken = this.jwt.sign(userpayload);
+                    result.Token = this.jwt.sign(userpayload);
                     result.Success = true;
                     return result;
                 }
@@ -167,6 +193,24 @@ export class AuthService {
         }catch(e){
             result.Success = false;
             result.Data = data;
+            result.Message = String(e);
+        }
+        return result;
+    }
+    async checktoken(id:string): Promise<Result<varification>> {
+        const result = new Result<varification> 
+        try{
+            const getuser = await this.varRepo.findOne({where:{uid:id}});
+            if(getuser == null){
+                result.Success = false;
+                result.Message = "No user Found token Is not valid";
+                return result;
+            }
+            result.Data = getuser ;
+            result.Message = "found" ;
+           
+        }catch(e){
+            result.Success = false;
             result.Message = String(e);
         }
         return result;

@@ -6,10 +6,12 @@ import { Order } from './Entity/Order.entity';
 import { OrderedItems } from './Entity/OrdredItems.entity';
 import { PaymentModule } from 'src/payment/payment.module';
 import { TablesModule } from 'src/tables/tables.module';
+import { Tables } from 'src/tables/Entity/Tables.entity';
 import { Resturant } from 'src/resturant/Entity/Resturant.entity';
+import { WalletModule } from 'src/wallet/wallet.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Order, OrderedItems , Resturant]), PaymentModule ],
+  imports: [TypeOrmModule.forFeature([Order, OrderedItems, Resturant, Tables]), PaymentModule, WalletModule ],
   controllers: [OrderController],
   providers: [OrderService],
 })

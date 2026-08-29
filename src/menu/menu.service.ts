@@ -123,7 +123,7 @@ export class MenuService {
     async getall(id:string):Promise<Result<menu[]>>{
                const result = new Result<menu[]>;
            try{
-            const getitem = await this.menurepo.find({where:{resturentId:id}});
+            const getitem = await this.menurepo.find({where:{resturentId:id}, relations:{images:true}});
             if(getitem == null){
                 result.Message ="No Items found";
                 result.Success = false;

@@ -6,20 +6,20 @@ import { Resturant } from './Entity/Resturant.entity';
 import { Like, Repository } from 'typeorm';
 import { PartialResturantDto } from './DTO/ParticalResturant.Dto';
 import { use } from 'passport';
+import { WalletService } from 'src/wallet/wallet.service';
 
 @Injectable()
 export class ResturantService {
 
-    constructor(@InjectRepository(Resturant) private readonly Resreo: Repository<Resturant>) { }
+    constructor(
+        @InjectRepository(Resturant) private readonly Resreo: Repository<Resturant>,
+        private readonly walletService: WalletService,
+    ) { }
 
     async addresturant(data: ResturantDto): Promise<Result<ResturantDto>> {
         const result = new Result<ResturantDto>;
         try {
-            if(data.id != null || data.id != undefined) {
-                result.Message = "Can not have uid when creating a resturent";
-                result.Success = false;
-                return result; 
-            }
+            data.id = undefined;
             data.resturantemail = data.resturantemail.toLowerCase();
             const check = await this.Findbyemail(data.resturantemail) || await this.Findbyphone(data.phone);
 
@@ -30,6 +30,15 @@ export class ResturantService {
             }
             const create = await this.Resreo.save(data);
             if (create) {
+                const wallet = await this.walletService.addtowallet({
+                    restaurantId: create.id,
+                    balance: 0,
+                });
+                if (!wallet.Success) {
+                    result.Message = wallet.Message || "Could not create restaurant wallet";
+                    result.Success = false;
+                    return result;
+                }
                 result.Data = create;
                 return result;
             }
@@ -61,19 +70,28 @@ export class ResturantService {
         }
         return result;
     }
+    async getMyResturants(user:any): Promise<Result<Resturant[]>> {
+        const result = new Result<Resturant[]>;
+        try {
+            const get = await this.Resreo.find({where:{ownerid:user.userId} , relations:{files:true, tables:true , menu:true, logoFile:true, coverFile:true}});
+            if (get != null) {
+                result.Data = get;
+                result.Message = `${get.length} resturent Found`;
+                return result;
+            }
+            result.Success = false;
+        }
+        catch (e) {
+            result.Message = String(e);
+            result.Success = false;
+
+        }
+        return result;
+    }
     async getall(user:any): Promise<Result<Resturant[]>> {
         const result = new Result<Resturant[]>;
         try {
-            if(user.role == "admin"){
-            const get = await this.Resreo.find({ relations: { files: true, tables: true, menu: true } });
-            if (get != null) {
-                result.Data = get;
-            }
-            result.Message = `${get.length} resturent Found`;
-            return result;
-
-            }
-            const get = await this.Resreo.find({where:{ownerid:user.userId} , relations:{files:true, tables:true , menu:true}});
+            const get = await this.Resreo.find({relations:{files:true, logoFile:true, coverFile:true}});
             if (get != null) {
                 result.Data = get;
                 result.Message = `${get.length} resturent Found`;
@@ -229,7 +247,7 @@ export class ResturantService {
     async FindbyID(id: string): Promise<Result<Resturant>> {
         const result = new Result<Resturant>;
         try {
-            const create = await this.Resreo.findOne({ where: { id:id } , relations:{tables:true} });
+            const create = await this.Resreo.findOne({ where: { id:id } , relations:{tables:true, files:true, menu:true, logoFile:true, coverFile:true} });
             if (create != null) {
                 result.Data = create;
                 result.Message = `Resturant Found`;

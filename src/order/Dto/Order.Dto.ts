@@ -23,9 +23,10 @@ export class OrderDto {
     @ApiProperty()
     discount?:number;
 
+    @IsOptional()
     @IsEnum(OrderStatus)
     @ApiProperty()
-    OrderstStatus!:OrderStatus;
+    OrderStatus?:OrderStatus;
     
     @IsNotEmpty()    
     @ApiProperty()

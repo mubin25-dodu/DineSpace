@@ -13,24 +13,26 @@ import { MenuModule } from './menu/menu.module';
 import { TablesModule } from './tables/tables.module';
 import { OrderModule } from './order/order.module';
 import { PaymentModule } from './payment/payment.module';
+import { WebsockModule } from './websock/websock.module';
+import { WalletModule } from './wallet/wallet.module';
 
 @Module({
   imports: [ConfigModule.forRoot({
     isGlobal:true,
     expandVariables:true,
     envFilePath:'.env'
-  }),AuthModule, TypeOrmModule.forRoot({
+  }),AuthModule, WebsockModule, TypeOrmModule.forRoot({
     type:'postgres',
     host: process.env.DBHost ?? 'localhost',
     port: Number(process.env.DBport ?? 5432),
     username: process.env.DBusername,
     password: process.env.DBpassword,
     database: process.env.database,
-    ssl:{rejectUnauthorized: false} ,
-    extra: { rejectUnauthorized: false },
+    // ssl:{rejectUnauthorized: false} ,
+    // extra: { rejectUnauthorized: false },
     autoLoadEntities:true,
-    synchronize:false
-  }) , UserModule, ResturantModule, MailModule, VerificationRequestModule, FilesModule, MenuModule, TablesModule, OrderModule, PaymentModule],
+    synchronize:true
+  }) , UserModule, ResturantModule, MailModule, VerificationRequestModule, FilesModule, MenuModule, TablesModule, OrderModule, PaymentModule, WalletModule],
   
   controllers: [AppController],
   providers: [AppService],

@@ -1,8 +1,8 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Files } from "src/files/Entity/Files.Entity";
 import { Order } from "src/order/Entity/Order.entity";
+import { OrderedItems } from "src/order/Entity/OrdredItems.entity";
 import { Resturant } from "src/resturant/Entity/Resturant.entity";
-import { ResturantService } from "src/resturant/resturant.service";
 import { Column, Entity, JoinColumn, ManyToMany, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
@@ -37,8 +37,8 @@ export class menu{
     @JoinColumn({name:"resturentId"})
     resturent!:Resturant;
 
-    @OneToMany(() => Order, (order) => order.orderitems)
-    order?: Order[];
+    @OneToMany(() => OrderedItems, (orderItem) => orderItem.menu)
+    orderItems?: OrderedItems[];
 
 
 }

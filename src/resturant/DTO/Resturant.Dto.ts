@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsBoolean, IsEmail, IsNotEmpty, IsOptional, Matches } from "class-validator";
+import { IsBoolean, IsEmail, IsNotEmpty, IsOptional, IsUUID, Matches } from "class-validator";
 
 export class ResturantDto {
     @IsOptional()
@@ -19,7 +19,7 @@ export class ResturantDto {
     @IsNotEmpty()
     @ApiProperty()
     isopen!: boolean;
-    @Matches(/^(?:1[0-2]|0?[1-9]):[0-5]\d\s?(?:[Aa][Mm]|[Pp][Mm])$/, {message: "Time must be in 12-hour format with AM/PM (e.g., 12:40 PM or 09:30 AM)."})
+    @Matches(/^(?:[01]\d|2[0-3]):[0-5]\d$/ , {message: "Time must be in 24-hour format (e.g., 13:40 or 09:30)."})
     @IsNotEmpty()
     @ApiProperty()
     opening!: string;
@@ -32,11 +32,21 @@ export class ResturantDto {
     @ApiProperty()
     resturantemail!: string;
     @IsNotEmpty()
-    @Matches(/^(?:1[0-2]|0?[1-9]):[0-5]\d\s?(?:[Aa][Mm]|[Pp][Mm])$/, {message: "Time must be in 12-hour format with AM/PM (e.g., 12:40 PM or 09:30 AM)."})
+    @Matches(/^(?:[01]\d|2[0-3]):[0-5]\d$/ , {message: "Time must be in 24-hour format (e.g., 13:40 or 09:30)."})
     @ApiProperty()
     closing!: string;
     @IsBoolean()
     @IsNotEmpty()
     @ApiProperty()
     payfirst!: boolean;
+
+    @IsOptional()
+    @IsUUID()
+    @ApiProperty({ required: false })
+    logoFileId?: string;
+
+    @IsOptional()
+    @IsUUID()
+    @ApiProperty({ required: false })
+    coverFileId?: string;
 }

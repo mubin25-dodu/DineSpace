@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, JoinTable, ManyToMany, ManyToOne, OneToMany, OneToOne, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryColumn } from "typeorm";
 import { OrderStatus } from "../enum/OrderStatus.enum";
 import { OrderedItems } from "./OrdredItems.entity";
 import { Tables } from "src/tables/Entity/Tables.entity";
@@ -12,7 +12,8 @@ export class Order{
     @Column({type:"uuid", nullable:false})
     tableId!:string;
 
-    @OneToOne(() => Tables, (table) => table.order)
+    @ManyToOne(() => Tables, (table) => table.orders, { nullable: false })
+    @JoinColumn({ name: "tableId", referencedColumnName: "id" })
     table?: Tables;
 
     @OneToMany(() => OrderedItems, (items) => items.order)
@@ -27,7 +28,7 @@ export class Order{
     discount?:number;
     
     @Column({type:"enum",enum:OrderStatus, nullable:false })
-    OrderstStatus!:OrderStatus;
+    OrderStatus!:OrderStatus;
 
     @Column({type:"timestamp", nullable:true})
     DeliveryTime?:Date;

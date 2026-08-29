@@ -6,7 +6,6 @@ import { PaymentStatus } from "src/payment/Enum/PaymentStatus.enum";
 export class filterDto {
 @IsNotEmpty()
 ResturentId!:string;
-
 @IsOptional()
 Status?:OrderStatus;
 @IsOptional()

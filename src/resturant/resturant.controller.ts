@@ -24,11 +24,18 @@ export class ResturantController {
 
   @ApiBearerAuth('bearerAuth')
   @UseGuards(jwtGuard,RolesGuard)
-  @Roles('admin' , "owner")
-  @Get("getallresturents")
+  @Roles("owner")
+  @Get("getMyresturants")
   async getall(@Req() req:any):Promise<Result<Resturant[]>>{
+    return  await this.resturantService.getMyResturants(req.user);
+  }
+
+
+  @Get("getAllResturants")
+  async getallres(@Req() req:any):Promise<Result<Resturant[]>>{
     return  await this.resturantService.getall(req.user);
   }
+
   @ApiBearerAuth('bearerAuth')
   @UseGuards(jwtGuard,RolesGuard)
   @Roles('admin' , "owner")
@@ -59,6 +66,7 @@ export class ResturantController {
     return result;
   }
 
+  
   
     @ApiBearerAuth('bearerAuth')
     @UseGuards(jwtGuard, RolesGuard)

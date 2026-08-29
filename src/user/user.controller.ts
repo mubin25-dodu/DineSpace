@@ -25,10 +25,13 @@ export class UserController {
   //   }
   //   return adduser;
   // }
-
-  @Get("getbyemail/:email")
-  async Findbyemail(@Param("email") email:string ):Promise<Result<PartialUserDto>>{
-    const getuser = await this.userService.FIndbyemail(email);
+  @ApiBearerAuth('bearerAuth')
+  @UseGuards(jwtGuard, RolesGuard)
+  @Roles('owner', 'admin')
+  @Get("GetMe")
+  async Findbyemail(@Req() req:any):Promise<Result<PartialUserDto>>{
+    // console.log(req);
+    const getuser = await this.userService.FIndbyemail(req.user.email);
     if (getuser.Data) {
       getuser.Data.password = "******";
     }

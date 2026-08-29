@@ -1,5 +1,6 @@
 export enum TableStatus{
-    isoccupied = "isoccupied" ,
-    Isavailable = "isavailable",
-    isreserved = "isreserved"
+    Occupied = "Occupied" ,
+    Available = "Available",
+    Reserved = "Reserved",
+    Cleaning = "Cleaning",
 }

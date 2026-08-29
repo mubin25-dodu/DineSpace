@@ -3,7 +3,9 @@ import { Files } from "src/files/Entity/Files.Entity";
 import { menu } from "src/menu/Entity/menu.entity";
 import { Tables } from "src/tables/Entity/Tables.entity";
 import { users } from "src/user/Entity/users.entity";
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Wallet } from "src/wallet/Entity/wallet.entity";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { OneToOne } from "typeorm";
 
 @Entity("restaurants")
 export class Resturant {
@@ -24,7 +26,7 @@ export class Resturant {
     isopen!: boolean;
 
     @Column({ type: "varchar", length: 20 })
-    @Matches(/^(?:1[0-2]|0?[1-9]):[0-5]\d\s?(?:[Aa][Mm]|[Pp][Mm])$/, { message: "Time must be in 12-hour format with AM/PM (e.g., 12:40 PM or 09:30 AM)." })
+    @Matches(/^(?:[01]\d|2[0-3]):[0-5]\d$/ , { message: "Time must be in 24-hour format (e.g., 13:40 or 09:30)." })
     opening!: string;
 
     @Column({ type: "varchar", length: 20 })
@@ -36,7 +38,7 @@ export class Resturant {
     resturantemail!: string;
 
     @Column({ type: "varchar", length: 20 })
-    @Matches(/^(?:1[0-2]|0?[1-9]):[0-5]\d\s?(?:[Aa][Mm]|[Pp][Mm])$/, { message: "Time must be in 12-hour format with AM/PM (e.g., 12:40 PM or 09:30 AM)." })
+    @Matches(/^(?:[01]\d|2[0-3]):[0-5]\d$/ , { message: "Time must be in 24-hour format (e.g., 13:40 or 09:30)." })
     closing!: string;
 
     @Column({ type: "boolean", default: false })
@@ -52,6 +54,28 @@ export class Resturant {
     @JoinColumn({ name: 'ownerid' })
     owner!: users;
 
+    @Column({ type: "uuid", nullable: true })
+    @IsOptional()
+    logoFileId?: string;
+
+    @ManyToOne(() => Files, {
+        nullable: true,
+        onDelete: 'SET NULL'
+    })
+    @JoinColumn({ name: 'logoFileId' })
+    logoFile?: Files;
+
+    @Column({ type: "uuid", nullable: true })
+    @IsOptional()
+    coverFileId?: string;
+
+    @ManyToOne(() => Files, {
+        nullable: true,
+        onDelete: 'SET NULL'
+    })
+    @JoinColumn({ name: 'coverFileId' })
+    coverFile?: Files;
+
     @OneToMany(() => Files, (file) => file.restaurant)
     files?: Files[];
     
@@ -60,6 +84,9 @@ export class Resturant {
 
     @OneToMany(()=> menu , (menu) => menu.resturent)
     menu?:menu[];
+
+    @OneToOne(() => Wallet, (wallet) => wallet.restaurant)
+    wallet?: Wallet;
     
     @CreateDateColumn()
     createdat!: Date;

@@ -23,21 +23,21 @@ export class PaymentController {
 //   //   return this.paymentService.changestatus(data , req);
 //   // }
 
-//   @UseGuards(jwtGuard , RolesGuard)
-//   @ApiBearerAuth('bearerAuth')
-//   @Roles("admin" , "owner")
-//   @Patch("updatePayment")
-//   togglestatus(@Body()data:partialPaymentDto, @Req() req:any):Promise<Result<Payment>>{
-//     return this.paymentService.updateinfo(data , req);
+  @UseGuards(jwtGuard , RolesGuard)
+  @ApiBearerAuth('bearerAuth')
+  @Roles("admin" , "owner")
+  @Patch("updatePayment")
+  update(@Body()data:partialPaymentDto, @Req() req:any):Promise<Result<Payment>>{
+    return this.paymentService.updateinfo(data , req.user);
 
-//   }
+  }
 
-//   @UseGuards(jwtGuard , RolesGuard)
-//   @ApiBearerAuth('bearerAuth')
-//   @Roles("admin" , "owner")
-//   @Get("GetpaymentByResturentId/:Resturentid")
-//   getall(@Param("Resturentid")Resturentid:string, @Req() req:any):Promise<Result<Payment[]>>{
-//     return this.paymentService.getallByResturent(Resturentid , req);
-//   }
+  @UseGuards(jwtGuard , RolesGuard)
+  @ApiBearerAuth('bearerAuth')
+  @Roles("admin" , "owner")
+  @Get("GetpaymentByResturentId/:Resturentid")
+  getall(@Param("Resturentid")Resturentid:string, @Req() req:any):Promise<Result<Payment[]>>{
+    return this.paymentService.getallByResturent(Resturentid , req.user);
+  }
  
 }

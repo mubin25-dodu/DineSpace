@@ -6,6 +6,7 @@ import { Result } from 'src/SharedServices/Result';
 import { PaymentDto } from './Dto/payment.dto';
 import { partialPaymentDto } from './Dto/partialpayment.Dto';
 import { PaymentStatus } from './Enum/PaymentStatus.enum';
+import { paymentMethod } from './Enum/PaymentMethode.enum';
 
 @Injectable()
 export class PaymentService {
@@ -14,6 +15,7 @@ export class PaymentService {
     async createPayment(data:PaymentDto):Promise<Result<Payment>> {
             const result = new Result<Payment>();
             try {
+                // data.paymentMethode !== paymentMethod.Cash;
                 result.Data = await this.paymentrepo.save(data);
                 result.Message = "Payment created";
                 //send a notification at this pont using websocket
@@ -46,7 +48,7 @@ export class PaymentService {
                 result.Success = false;
                 return result;
                 }
-                result.Data = await this.paymentrepo.save(getpayment);
+                result.Data = await this.paymentrepo.save(data);
                 result.Message = "Payment updated"
             } catch (e) {
                 result.Message = String(e);
@@ -85,19 +87,20 @@ export class PaymentService {
     async makepayment(data:PaymentDto):Promise<Result<Payment>>{
         const result = new Result<Payment>();
             try {
-                //mimicing the payment process here
 
-                if(Date.now()%2 <= 2 ){
+                //mimicing the payment process here
+                if(Math.random() < 0.1){
                     result.Success = false;
                     result.Message = "Demo Transection failed";
                     return result;
                 }
 
                 const fakepayment = new Payment();
-                fakepayment.transectionId = `Fake-${Date.now}`;
+                fakepayment.transectionId = `Fake-${Math.random()}`;
                 fakepayment.status = PaymentStatus.Paid;
                 fakepayment.paymentMethode = data.paymentMethode;
                 fakepayment.orderId = data.orderId;
+                // this.paymentrepo.save(fakepayment);
                 result.Data = fakepayment;
                 result.Message = 'Payment processed';
             } catch (e) {

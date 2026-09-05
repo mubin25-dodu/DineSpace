@@ -13,13 +13,18 @@ export class OrderItemDto {
     @ApiProperty()
 	orderId?:string;
 
+	@IsUUID()
+	@IsOptional()
+    @ApiProperty({ required: false })
+	addOnOrderId?: string;
+
 	@IsNumber()
     @ApiProperty()
 	@Min(1, { message: "Quantity must be at least 1" })
 	quantity!: number;
 
     @ApiProperty()
-	@IsNumber()
+	@IsOptional()
 	@Min(0, { message: "Price cannot be negative" })
-	price!: number;
+	price?: number;
 }

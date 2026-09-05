@@ -19,11 +19,12 @@ import { WalletService } from 'src/wallet/wallet.service';
 import { WithdrawalRequest } from 'src/wallet/Entity/WithdrawalRequest.entity';
 import { WithdrawalRequestDto } from 'src/wallet/Dto/WithdrawalRequest.dto';
 import { WithdrawalType } from 'src/wallet/Enum/WithdrawalType.enum';
+import { AddOnOrder } from './Entity/AddOnOrder.entity';
+import { AddOnOrderDto } from './Dto/AddOnOrder.dto';
 
 @Injectable()
 export class OrderService {
-    constructor(@InjectRepository(Order) private readonly ordrepo:Repository<Order>, 
-        @InjectRepository(OrderedItems) private readonly orditemrepo:Repository<OrderedItems>,
+    constructor(@InjectRepository(Order) private readonly ordrepo:Repository<Order>,         @InjectRepository(AddOnOrder) private readonly addOnOrderRepo:Repository<AddOnOrder>,        @InjectRepository(OrderedItems) private readonly orditemrepo:Repository<OrderedItems>,
         @InjectRepository(Tables) private readonly tablerepo:Repository<Tables>,
         private paymentService:PaymentService ,
         private walletService:WalletService,
@@ -33,7 +34,7 @@ export class OrderService {
             const result = new Result<Order[]>();
             try {
                 if(user.role == "admin"){
-                    const getresturent = await this.ordrepo.find({relations:{table:true} , where:{table:{
+                    const getresturent = await this.ordrepo.find({ relations: { orderitems: {menu:true} , table:true , payment:true , addOnOrders:{payment:true , addOnOrderItems:{menu:true}} }, where:{table:{
                     reservationId:id
                 }}});
                 
@@ -43,7 +44,7 @@ export class OrderService {
                 }
 
                 const getresturent = await this.ordrepo.find({
-                    relations: { orderitems: {menu:true} , table:true , payment:true },
+                    relations: { orderitems: {menu:true} , table:true , payment:true , addOnOrders:{payment:true , addOnOrderItems:{menu:true}} },
                     where: {
                         table: {
                             resturantid: id,
@@ -70,8 +71,8 @@ export class OrderService {
                 const endtime = new Date();
                 endtime.setHours(23 , 59 ,59 ,999);
                 if(user.role == "admin"){
-                    const getresturent = await this.ordrepo.find({relations:{table:true} , where:{OrderTime: Between(starttime , endtime) , table:{
-                    reservationId:id
+                    const getresturent = await this.ordrepo.find({relations:{orderitems:{menu:true} , table:true , payment:true , addOnOrders:{payment:true , addOnOrderItems:{menu:true}}} , where:{OrderTime: Between(starttime , endtime) , table:{
+                    reservationId:id 
                 }}});
                 
                 result.Data = getresturent ?? [];
@@ -80,7 +81,7 @@ export class OrderService {
                 }
 
                 const getresturent = await this.ordrepo.find({
-                    relations: { orderitems: {menu:true} , table:true , payment:true },
+                    relations: { orderitems: {menu:true} , table:true , payment:true , addOnOrders:{payment:true , addOnOrderItems:{menu:true}} },
                     where: {OrderTime: Between(starttime , endtime),
                         table: {
                             resturantid: id,
@@ -179,10 +180,115 @@ export class OrderService {
                return result;
     }
 
+    async createAddOnOrder(data:AddOnOrderDto):Promise<Result<AddOnOrder>> {
+            const result = new Result<AddOnOrder>();
+            try {
+                const parentOrder = await this.ordrepo.findOne({
+                    where: { id: data.orderId },
+                    relations: { table: { resturant: true } },
+                });
+
+                if (!parentOrder) {
+                    result.Message = "Original order not found";
+                    result.Success = false;
+                    return result;
+                }
+
+                const restaurant = await this.resrepo.findOne({
+                    where: { tables: { id: parentOrder.tableId } },
+                    relations: { menu: true, tables: true },
+                });
+
+                if (!restaurant) {
+                    result.Message = "Restaurant or table not found";
+                    result.Success = false;
+                    return result;
+                }
+
+                if (!data.payment) {
+                    result.Message = "Payment details are required for add-on order";
+                    result.Success = false;
+                    return result;
+                }
+
+                const addOnOrderId = `AON-${randomUUID()}`;
+                let payable = 0;
+                const menuItems = restaurant.menu ?? [];
+
+                for (const orderItem of data.orderitems) {
+                    const menuItem = menuItems.find((item) => item.id === orderItem.itemId);
+                    if (!menuItem) {
+                        result.Message = `Menu item ${orderItem.itemId} was not found in this restaurant`;
+                        result.Success = false;
+                        return result;
+                    }
+
+                    const price = orderItem.quantity * Number(menuItem.price);
+                    orderItem.price = price;
+                    orderItem.addOnOrderId = addOnOrderId;
+                    orderItem.orderId = undefined;
+                    payable += price;
+                }
+
+                data.payment.addOnOrderId = addOnOrderId;
+                data.payment.orderId = undefined;
+                data.payment.amount = payable;
+
+                const makepayment = await this.paymentService.makepayment(data.payment);
+                if (!makepayment.Success) {
+                    result.Message = makepayment.Message;
+                    result.Success = false;
+                    return result;
+                }
+
+                data.payment.status = PaymentStatus.Paid;
+                data.payment.transectionId = makepayment.Data?.transectionId;
+
+                const addOnOrder = await this.addOnOrderRepo.save({
+                    id: addOnOrderId,
+                    orderId: data.orderId,
+                    payable,
+                    discount: data.discount ?? 0,
+                    OrderStatus: data.OrderStatus ?? OrderStatus.Pending,
+                    order: parentOrder,
+                } as AddOnOrder);
+
+                await this.orditemrepo.save(data.orderitems);
+                const payment = await this.paymentService.createPayment(data.payment);
+                if (!payment.Success) {
+                    result.Message = payment.Message;
+                    result.Success = false;
+                    return result;
+                }
+
+                if (data.payment.status === PaymentStatus.Paid && data.payment.paymentMethode !== paymentMethod.Cash) {
+                    const wallet = await this.walletService.addtowallet({
+                        restaurantId: restaurant.id,
+                        balance: payable,
+                    }, payment.Data);
+                    if (!wallet.Success) {
+                        result.Message = wallet.Message;
+                        result.Success = false;
+                        return result;
+                    }
+                }
+
+                result.Data = await this.addOnOrderRepo.findOne({
+                    where: { id: addOnOrder.id },
+                    relations: { payment: true, addOnOrderItems: { menu: true } },
+                }) ?? addOnOrder;
+                result.Message = "Add-on order created successfully";
+            } catch (e) {
+                result.Message = String(e);
+                result.Success = false;
+            }
+            return result;
+    }
+
     async makeOrder(data:PlaceorderDto):Promise<Result<Order>> {
             const result = new Result<Order>();
             try {
-              const orderId = "Odr-"+randomInt;
+              const orderId = randomUUID();
               data.payment.orderId = orderId;
               data.orderdetails.id  = orderId;
               data.orderdetails.OrderStatus = OrderStatus.Pending;
@@ -224,6 +330,7 @@ export class OrderService {
                 data.orderdetails.payable += price;
             }
 
+            data.payment.amount = Number(data.orderdetails.payable.toFixed(2));
             const makepayment = await this.paymentService.makepayment(data.payment);
             if(!makepayment.Success){
                 result.Message = makepayment.Message;
@@ -250,7 +357,7 @@ export class OrderService {
                 return result;
              }
 
-             if (data.payment.status === PaymentStatus.Paid) {
+             if (data.payment.status === PaymentStatus.Paid && data.payment.paymentMethode !== paymentMethod.Cash) {
                 const wallet = await this.walletService.addtowallet({
                     restaurantId: getresturent.id,
                     balance: data.orderdetails.payable,

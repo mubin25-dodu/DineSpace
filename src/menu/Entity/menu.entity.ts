@@ -21,7 +21,7 @@ export class menu{
 
     @Column({type:'varchar' , nullable:true , length:255 })
     description!:string;
-    @Column({type:'boolean' , nullable:false })
+    @Column({type:'boolean' , nullable:false , default:true })
     isAvailable!:boolean;
     
     @Column({type:'varchar' , nullable:false , length:255 })

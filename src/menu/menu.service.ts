@@ -1,13 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { menu } from './Entity/menu.entity';
+import { Category } from './Entity/category.entity';
 import { In, Repository } from 'typeorm';
 import { Result } from 'src/SharedServices/Result';
 import { MenuDto } from './Dto/menu.Dto';
 
 @Injectable()
 export class MenuService {
-    constructor(@InjectRepository(menu) private readonly menurepo:Repository<menu>){ }
+    constructor(
+        @InjectRepository(menu) private readonly menurepo:Repository<menu>,
+        @InjectRepository(Category) private readonly categoryrepo:Repository<Category>
+    ){ }
 
     async createMenu(menu:MenuDto[] , user:any):Promise<Result<menu[]>>{
                const result = new Result<menu[]>;
@@ -31,6 +35,25 @@ export class MenuService {
             });
             if(!searchResturent){
                 result.Message = 'Not a valid owner';
+                result.Success = false;
+                return result;
+            }
+
+            const itemNames = menu.map((item) => item.itemName.trim().toLowerCase());
+            if (await this.checkdupes(itemNames) !== itemNames.length) {
+                result.Message = 'Duplicate item name';
+                result.Success = false;
+                return result;
+            }
+
+            const existingItem = await this.menurepo.findOne({
+                where: {
+                    resturentId: menu[0].resturentId,
+                    itemName: In(menu.map((item) => item.itemName))
+                }
+            });
+            if (existingItem) {
+                result.Message = 'Item with same name on the menu already exist';
                 result.Success = false;
                 return result;
             }
@@ -140,7 +163,55 @@ export class MenuService {
                return result;
        
            } 
-    
+
+    async getMenuItemById(id:string, user:any):Promise<Result<menu>>{
+               const result = new Result<menu>;
+           try{
+            const getitem = await this.menurepo.findOne({
+                where: {id},
+                relations: {images: true}
+            });
+            if(getitem == null){
+                result.Message = "Item not found";
+                result.Success = false;
+                return result;
+            }
+
+            const restaurant = await this.menurepo.manager.getRepository('Resturant').findOne({
+                where: {id: getitem.resturentId, ownerid: user.userId}
+            });
+            if(!restaurant){
+                result.Message = "You are not the owner of this item";
+                result.Success = false;
+                return result;
+            }
+
+            result.Data = getitem;
+            result.Message = "Success";
+           }
+           catch(e){
+               result.Message = String(e);
+               result.Success = false;
+           }
+               return result;
+           }
+
+    async getCategories():Promise<Result<string[]>>{
+               const result = new Result<string[]>;
+           try{
+            const categories = (await this.categoryrepo.find({order: {name: 'ASC'}}))
+                .map((category) => category.name);
+
+            result.Data = categories;
+            result.Message = `${categories.length} categories found`;
+           }
+           catch(e){
+               result.Message = String(e);
+               result.Success = false;
+           }
+               return result;
+           }
+
     async Isavailable(id:string, user):Promise<Result<menu>>{
                 const result = new Result<menu>;
             try{

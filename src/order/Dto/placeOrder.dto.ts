@@ -21,7 +21,9 @@ export class PlaceorderDto {
     @Type(() => OrderItemDto)
     orderitems!: OrderItemDto[];
 
-    @ApiProperty({ required: false })
-    @IsOptional()
-    payment!:PaymentDto;
+    @ApiProperty({ type: PaymentDto })
+    @IsDefined()
+    @ValidateNested()
+    @Type(() => PaymentDto)
+    payment!: PaymentDto;
 }

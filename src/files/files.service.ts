@@ -40,6 +40,10 @@ async addfiles( file: Express.Multer.File[], user:any , restaurantId?:string, me
                             return result;
                         }
                     }
+
+                    const previousMenuFiles = menuId !== undefined
+                        ? await this.filerepo.find({where: {MenuId: menuId}})
+                        : [];
                     
 
                     const data: FilesDto[] = [];
@@ -62,6 +66,11 @@ async addfiles( file: Express.Multer.File[], user:any , restaurantId?:string, me
                         result.Message = "couldn't save images"
                         result.Success = false
                         return result;
+                    }
+
+                    if (menuId !== undefined && previousMenuFiles.length > 0) {
+                        await this.filerepo.delete(previousMenuFiles.map((previousFile) => previousFile.id));
+                        await this.deleteStoredFiles(previousMenuFiles);
                     }
                     result.Message = "images saved successfully"
                     return result;
@@ -104,7 +113,13 @@ async deletefile(fileid:string , userId:string):Promise<Result<null>>{
 
     async deletefromproject(data:any[]){
         for(const f of data){
-            await fs.unlink(f.path);
+            await fs.unlink(f.path).catch(() => undefined);
+        }
+    }
+
+    private async deleteStoredFiles(files:Files[]){
+        for(const file of files){
+            await fs.unlink(file.Path).catch(() => undefined);
         }
     }
     

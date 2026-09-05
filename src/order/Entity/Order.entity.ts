@@ -3,6 +3,7 @@ import { OrderStatus } from "../enum/OrderStatus.enum";
 import { OrderedItems } from "./OrdredItems.entity";
 import { Tables } from "src/tables/Entity/Tables.entity";
 import { Payment } from "src/payment/Entity/payment.entity";
+import { AddOnOrder } from "./AddOnOrder.entity";
 
 @Entity()
 export class Order{
@@ -18,6 +19,9 @@ export class Order{
 
     @OneToMany(() => OrderedItems, (items) => items.order)
     orderitems!:OrderedItems[];
+
+    @OneToMany(() => AddOnOrder, (addOnOrder) => addOnOrder.order)
+    addOnOrders?: AddOnOrder[];
 
     @Column({type:"decimal", nullable:false , precision: 10,
     scale: 2})

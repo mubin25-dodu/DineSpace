@@ -9,6 +9,8 @@ import { Order } from './Entity/Order.entity';
 import { PlaceorderDto } from './Dto/placeOrder.dto';
 import { filterDto } from './Dto/Filterorder.dto';
 import { UpdateOrderDto } from './Dto/UpdateOrder';
+import { AddOnOrderDto } from './Dto/AddOnOrder.dto';
+import { AddOnOrder } from './Entity/AddOnOrder.entity';
 
 @Controller('order')
 export class OrderController {
@@ -34,6 +36,11 @@ export class OrderController {
     @Post('PlaceOrder')
     placeOrder(@Body() data:PlaceorderDto):Promise<Result<Order>> {
       return this.orderService.makeOrder(data);
+    }
+
+    @Post('PlaceAddOnOrder')
+    createAddOnOrder(@Body() data:AddOnOrderDto):Promise<Result<AddOnOrder>> {
+      return this.orderService.createAddOnOrder(data);
     }
 
     @ApiBearerAuth('bearerAuth')

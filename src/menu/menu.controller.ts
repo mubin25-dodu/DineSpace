@@ -24,7 +24,7 @@ export class MenuController {
     @UseGuards(jwtGuard, RolesGuard)
     @Roles('owner')
     @Patch("UpdateMenu")
-    async updateMenu(@Body() menu:menu[] , @Req() req:any):Promise<Result<menu[]>>{
+    async updateMenu(@Body() menu:MenuDto[] , @Req() req:any):Promise<Result<menu[]>>{
       const createmenu =  await this.menuService.updateMenu(menu, req.user);
       return createmenu;
     }
@@ -42,6 +42,19 @@ export class MenuController {
     async Getall(@Param("Resturentid") Resturentid:string ):Promise<Result<menu[]>>{
       const createmenu =  await this.menuService.getall(Resturentid);
       return createmenu;
+    }
+
+    @ApiBearerAuth('bearerAuth')
+    @UseGuards(jwtGuard, RolesGuard)
+    @Roles('owner')
+    @Get("GetMenuItem/:id")
+    async getMenuItem(@Param("id") id:string, @Req() req:any):Promise<Result<menu>>{
+      return await this.menuService.getMenuItemById(id, req.user);
+    }
+
+    @Get("GetCategories")
+    async getCategories():Promise<Result<string[]>>{
+      return await this.menuService.getCategories();
     }
 
     @ApiBearerAuth('bearerAuth')

@@ -7,6 +7,7 @@ import { WalletDto } from './Dto/wallet.dto';
 import { Resturant } from 'src/resturant/Entity/Resturant.entity';
 import { Payment } from 'src/payment/Entity/payment.entity';
 import { WithdrawalRequest } from './Entity/WithdrawalRequest.entity';
+import { PaymentStatus } from 'src/payment/Enum/PaymentStatus.enum';
 
 @Injectable()
 export class WalletService {
@@ -21,6 +22,12 @@ export class WalletService {
     async addtowallet(data:WalletDto, payment?:Payment): Promise<Result<Wallet>> {
         const result = new Result<Wallet>();
         try{
+            if (payment && payment.status !== PaymentStatus.Paid) {
+                result.Success = false;
+                result.Message = "Payment has not been successful yet. Wallet was not credited.";
+                return result;
+            }
+
             const getresturent = await this.restaurantrepo.findOne({where:{id:data.restaurantId}});
             if(getresturent == null){
                 result.Success = false;

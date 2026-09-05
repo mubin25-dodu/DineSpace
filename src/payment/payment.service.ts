@@ -87,6 +87,13 @@ export class PaymentService {
     async makepayment(data:PaymentDto):Promise<Result<Payment>>{
         const result = new Result<Payment>();
             try {
+                const amount = Number(data?.amount);
+
+                if (!data || !Number.isFinite(amount) || amount <= 0) {
+                    result.Success = false;
+                    result.Message = "Invalid payment amount. Payment amount must be a positive number.";
+                    return result;
+                }
 
                 //mimicing the payment process here
                 if(Math.random() < 0.1){
@@ -100,6 +107,7 @@ export class PaymentService {
                 fakepayment.status = PaymentStatus.Paid;
                 fakepayment.paymentMethode = data.paymentMethode;
                 fakepayment.orderId = data.orderId;
+                fakepayment.amount = Number(amount.toFixed(2));
                 // this.paymentrepo.save(fakepayment);
                 result.Data = fakepayment;
                 result.Message = 'Payment processed';

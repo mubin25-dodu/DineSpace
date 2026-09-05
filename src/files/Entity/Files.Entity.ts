@@ -46,7 +46,10 @@ export class Files {
     @Column({ type: "uuid", nullable: true })
     MenuId?: string;
 
-    @ManyToOne(() => menu, (menu) => menu.images)
+    @ManyToOne(() => menu, (menu) => menu.images, {
+        nullable: true,
+        onDelete: "CASCADE",
+    })
     @JoinColumn({ name: "MenuId" })
     Menu?: menu;
 }

@@ -15,9 +15,14 @@ import { OrderModule } from './order/order.module';
 import { PaymentModule } from './payment/payment.module';
 import { WebsockModule } from './websock/websock.module';
 import { WalletModule } from './wallet/wallet.module';
+import { ServeStaticModule } from "@nestjs/serve-static";
+import { join } from "path";
 
 @Module({
-  imports: [ConfigModule.forRoot({
+  imports: [ServeStaticModule.forRoot({
+            rootPath: join(process.cwd(), "uploads"),
+            serveRoot: "/uploads",
+  }),ConfigModule.forRoot({
     isGlobal:true,
     expandVariables:true,
     envFilePath:'.env'
@@ -28,8 +33,6 @@ import { WalletModule } from './wallet/wallet.module';
     username: process.env.DBusername,
     password: process.env.DBpassword,
     database: process.env.database,
-    // ssl:{rejectUnauthorized: false} ,
-    // extra: { rejectUnauthorized: false },
     autoLoadEntities:true,
     synchronize:true
   }) , UserModule, ResturantModule, MailModule, VerificationRequestModule, FilesModule, MenuModule, TablesModule, OrderModule, PaymentModule, WalletModule],

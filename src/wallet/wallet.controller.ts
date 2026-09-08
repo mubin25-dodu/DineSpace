@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
 import { WalletService } from './wallet.service';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { jwtGuard } from 'src/auth/jwtGuard.guard';
@@ -17,7 +17,7 @@ export class WalletController {
       @ApiBearerAuth('bearerAuth')
       @UseGuards(jwtGuard, RolesGuard)
       @Roles("owner" , "admin")
-      @Get('MyWallet/:resturentId')
+      @Get('wallet/:resturentId')
       getorders( @Param("resturentId")resturentId:string ,@Req() req:any):Promise<Result<Wallet>> {
         return this.walletService.getall(resturentId , req.user.userId);
       }
@@ -28,5 +28,21 @@ export class WalletController {
       @Post('WidthdrawRequest/:resturentId')
       applywidthdraw( @Param("resturentId")resturentId:string ,@Req() req:any , @Body() data:WithdrawalRequestDto):Promise<Result<WithdrawalRequest>> {
         return this.walletService.applywidthdraw(resturentId , req.user.userId , data);
+      }
+
+      @ApiBearerAuth('bearerAuth')
+      @UseGuards(jwtGuard, RolesGuard)
+      @Roles("owner" , "admin")
+      @Delete('withdrawal/:withdrawalId')
+      cancelWithdrawal(@Param('withdrawalId') withdrawalId:string, @Req() req:any):Promise<Result<WithdrawalRequest>> {
+        return this.walletService.cancelWithdrawal(withdrawalId, req.user.userId);
+      }
+
+      @ApiBearerAuth('bearerAuth')
+      @UseGuards(jwtGuard, RolesGuard)
+      @Roles("owner", "admin")
+      @Post('refund/:orderId')
+      refund(@Param('orderId') orderId:string, @Req() req:any):Promise<Result<WithdrawalRequest>> {
+        return this.walletService.refundOrder(orderId, req.user);
       }
 }

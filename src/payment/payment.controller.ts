@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { PaymentService } from './payment.service';
 import { Payment } from './Entity/payment.entity';
 import { PaymentDto } from './Dto/payment.dto';
@@ -38,6 +38,19 @@ export class PaymentController {
   @Get("GetpaymentByResturentId/:Resturentid")
   getall(@Param("Resturentid")Resturentid:string, @Req() req:any):Promise<Result<Payment[]>>{
     return this.paymentService.getallByResturent(Resturentid , req.user);
+  }
+
+  @UseGuards(jwtGuard , RolesGuard)
+  @ApiBearerAuth('bearerAuth')
+  @Roles("admin" , "owner")
+  @Get("monthly/:Resturentid")
+  getMonthlyPayments(
+    @Param("Resturentid") Resturentid:string,
+    @Query("month") month:string,
+    @Query("year") year:string,
+    @Req() req:any,
+  ):Promise<Result<Payment[]>>{
+    return this.paymentService.getMonthlyPayments(Resturentid, month, year, req.user);
   }
  
 }

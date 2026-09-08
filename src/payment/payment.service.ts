@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Payment } from './Entity/payment.entity';
-import { Repository } from 'typeorm';
+import { Between, Repository } from 'typeorm';
 import { Result } from 'src/SharedServices/Result';
 import { PaymentDto } from './Dto/payment.dto';
 import { partialPaymentDto } from './Dto/partialpayment.Dto';
@@ -83,6 +83,41 @@ export class PaymentService {
             }
                 return result;
         }
+
+    async getMonthlyPayments(resturentId:string, month:string, year:string, user:any):Promise<Result<Payment[]>> {
+            const result = new Result<Payment[]>();
+            const monthNumber = Number(month);
+            const yearNumber = Number(year);
+
+            if (!Number.isInteger(monthNumber) || monthNumber < 1 || monthNumber > 12 ||
+                !Number.isInteger(yearNumber) || yearNumber < 1) {
+                result.Success = false;
+                result.Message = "Month must be between 1 and 12 and year must be a positive integer";
+                return result;
+            }
+
+            try {
+                const startDate = new Date(yearNumber, monthNumber - 1, 1);
+                const endDate = new Date(yearNumber, monthNumber, 1);
+                const restaurantWhere = user.role === "admin"
+                    ? { resturantid: resturentId }
+                    : { resturantid: resturentId, resturant: { ownerid: user.userId } };
+                const payments = await this.paymentrepo.find({
+                    where: {
+                        createdat: Between(startDate, endDate),
+                        order: { table: restaurantWhere },
+                    },
+                    order: { createdat: "ASC" },
+                });
+
+                result.Data = payments;
+                result.Message = `${payments.length} payment history found`;
+            } catch (e) {
+                result.Message = String(e);
+                result.Success = false;
+            }
+            return result;
+    }
 
     async makepayment(data:PaymentDto):Promise<Result<Payment>>{
         const result = new Result<Payment>();

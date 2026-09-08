@@ -150,7 +150,6 @@ export class OrderService {
                     return result;
                 }
                 if(data.OrderStatus === OrderStatus.Cancled && order.payment?.status == PaymentStatus.Paid){
-
                     const obj:WithdrawalRequestDto = { amount:order.payment.amount , type:WithdrawalType.Refund , paymentMethod:order.payment.paymentMethode , accountNumber:order.payment.acountNumber
                     } 
                     const resp = await this.walletService.applywidthdraw(order.table?.resturantid , user.userId , obj);

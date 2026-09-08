@@ -2,6 +2,7 @@ import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToOne, Prim
 import { users } from "src/user/Entity/users.entity";
 import { Resturant } from "src/resturant/Entity/Resturant.entity";
 import { menu } from "src/menu/Entity/menu.entity";
+import { RestaurantFileType } from "../Enum/files.Enum";
 
 @Entity("files")
 export class Files {
@@ -42,6 +43,13 @@ export class Files {
     })
     @JoinColumn({ name: "RestaurantId" })
     restaurant?: Resturant;
+
+    @Column({
+        type: "enum",
+        enum: RestaurantFileType,
+        nullable: true,
+    })
+    restaurantFileType?: RestaurantFileType;
 
     @Column({ type: "uuid", nullable: true })
     MenuId?: string;

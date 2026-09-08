@@ -253,6 +253,7 @@ export class ResturantService {
                 result.Message = `Resturant Found`;
                 return result;
             }
+
             result.Success = false;
         }
         catch (e) {
@@ -262,6 +263,11 @@ export class ResturantService {
         }
         return result;
     }
+
+    async save(restaurant: Resturant): Promise<Resturant> {
+        return this.Resreo.save(restaurant);
+    }
+
     async checkResturantowner(resturantid: string , ownerid:string): Promise<Result<Resturant>> {
         const result = new Result<Resturant>;
         try {

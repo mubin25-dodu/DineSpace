@@ -1,6 +1,6 @@
 import { Type } from "class-transformer";
 import {  IsNotEmpty, IsString, MaxLength } from "class-validator";
-import { fileEnum } from "../Enum/files.Enum";
+import { fileEnum, RestaurantFileType } from "../Enum/files.Enum";
 import { ApiProperty } from "@nestjs/swagger";
 
 export class FilesDto{
@@ -34,6 +34,8 @@ export class FilesDto{
         UploadedByUserId!: string;
         @ApiProperty()
         RestaurantId?: string;
+        @ApiProperty({ enum: RestaurantFileType, required: false })
+        restaurantFileType?: RestaurantFileType;
         @ApiProperty()
         MenuId?: string;
         @IsNotEmpty()

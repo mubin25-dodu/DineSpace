@@ -9,7 +9,7 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { Resturant } from 'src/resturant/Entity/Resturant.entity';
 import { menu } from 'src/menu/Entity/menu.entity';
-import { Admin } from 'typeorm/driver/mongodb/typings.js';
+import { RestaurantFileType } from './Enum/files.Enum';
 
 @Controller('files')
 export class FilesController {
@@ -47,7 +47,8 @@ export class FilesController {
         fileSize:  3 * 1024 * 1024
       }
   }))
-  async uploadfiles( @UploadedFiles() file: Express.Multer.File[] , @Req() req:any , @Query('resturantId') resturenId?:string, @Query('menuId') menuId?:string ,
+  async uploadfiles( @UploadedFiles() file: Express.Multer.File[] , @Req() req:any , @Query('resturantId') resturenId?:string, @Query('menuId') menuId?:string,
+    @Query('restaurantFileType') restaurantFileType?: RestaurantFileType,
   ):Promise<Result<Resturant | menu>>{
     
     const result = new Result<Resturant | menu>;
@@ -56,8 +57,14 @@ export class FilesController {
       result.Success = false;
       return result;
     }
+    if (restaurantFileType !== undefined &&
+        !Object.values(RestaurantFileType).includes(restaurantFileType)) {
+      result.Message = "Invalid restaurant file type";
+      result.Success = false;
+      return result;
+    }
     // console.log(file);
     
-    return await this.filesService.addfiles( file , req.user , resturenId , menuId);
+    return await this.filesService.addfiles(file, req.user, resturenId, menuId, restaurantFileType);
   }
 }

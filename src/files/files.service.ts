@@ -9,6 +9,7 @@ import { Resturant } from 'src/resturant/Entity/Resturant.entity';
 import { menu } from 'src/menu/Entity/menu.entity';
 import { ResturantService } from 'src/resturant/resturant.service';
 import { MenuService } from 'src/menu/menu.service';
+import { RestaurantFileType } from './Enum/files.Enum';
 
 @Injectable()
 export class FilesService {
@@ -17,7 +18,13 @@ export class FilesService {
     private menuService:MenuService){}
 
 
-async addfiles( file: Express.Multer.File[], user:any , restaurantId?:string, menuId?:string ):Promise<Result<Resturant | menu>>{
+async addfiles(
+    file: Express.Multer.File[],
+    user: any,
+    restaurantId?: string,
+    menuId?: string,
+    restaurantFileType?: RestaurantFileType,
+):Promise<Result<Resturant | menu>>{
        const result = new Result<Resturant | menu>;
                 try{
                     let restaurantResult;
@@ -26,6 +33,19 @@ async addfiles( file: Express.Multer.File[], user:any , restaurantId?:string, me
                         if (!restaurantResult.Success || restaurantResult.Data?.ownerid !== user.userId) {
                             result.Success = false;
                             result.Message = "resturant not found check the id Or you are not the owner";
+                            this.deletefromproject(file);
+                            return result;
+                        }
+                        if (restaurantFileType === undefined && menuId === undefined) {
+                            result.Success = false;
+                            result.Message = "Restaurant file type is required";
+                            this.deletefromproject(file);
+                            return result;
+                        }
+                        if (restaurantFileType !== undefined && file.length > 1 &&
+                            [RestaurantFileType.Logo, RestaurantFileType.Cover].includes(restaurantFileType)) {
+                            result.Success = false;
+                            result.Message = "Only one logo or cover file can be uploaded at a time";
                             this.deletefromproject(file);
                             return result;
                         }
@@ -55,6 +75,7 @@ async addfiles( file: Express.Multer.File[], user:any , restaurantId?:string, me
                             UploadedByUserId: user.userId,
                             Size: item.size,
                             RestaurantId: restaurantId,
+                            restaurantFileType,
                             MenuId: menuId,
                         } as FilesDto);
                     }
@@ -68,10 +89,24 @@ async addfiles( file: Express.Multer.File[], user:any , restaurantId?:string, me
                         return result;
                     }
 
+                    if (restaurantId !== undefined && restaurantFileType !== undefined &&
+                        restaurantResult?.Data) {
+                        const restaurant = restaurantResult.Data;
+                        if (restaurantFileType === RestaurantFileType.Logo) {
+                            restaurant.logoFileId = savedata[0].id;
+                        } else if (restaurantFileType === RestaurantFileType.Cover) {
+                            restaurant.coverFileId = savedata[0].id;
+                        }
+                        await this.resturentService.save(restaurant);
+                    }
+
                     if (menuId !== undefined && previousMenuFiles.length > 0) {
                         await this.filerepo.delete(previousMenuFiles.map((previousFile) => previousFile.id));
                         await this.deleteStoredFiles(previousMenuFiles);
                     }
+                    result.Data = restaurantId !== undefined
+                        ? (await this.resturentService.FindbyID(restaurantId)).Data
+                        : menuResult?.Data;
                     result.Message = "images saved successfully"
                     return result;
                 }

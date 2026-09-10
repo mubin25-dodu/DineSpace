@@ -66,18 +66,24 @@ async addfiles(
                         : [];
                     
 
-                    const data: FilesDto[] = [];
+                    const data: Files[] = [];
                     for (const item of file) {
-                        data.push({
+                        const fileData = {
                             FileName: item.filename,
                             OriginalName: item.originalname,
                             Path: item.path,
                             UploadedByUserId: user.userId,
                             Size: item.size,
-                            RestaurantId: restaurantId,
+                            RestaurantId: restaurantResult?.Data?.id ?? restaurantId,
                             restaurantFileType,
                             MenuId: menuId,
-                        } as FilesDto);
+                        };
+                        const fileEntity = this.filerepo.create(fileData);
+                        if (restaurantResult?.Data) {
+                            fileEntity.restaurant = restaurantResult.Data;
+                            fileEntity.RestaurantId = restaurantResult.Data.id;
+                        }
+                        data.push(fileEntity);
                     }
             
                                     
@@ -87,6 +93,13 @@ async addfiles(
                         result.Message = "couldn't save images"
                         result.Success = false
                         return result;
+                    }
+
+                    if (restaurantResult?.Data) {
+                        await this.filerepo.update(
+                            savedata.map((savedFile) => savedFile.id),
+                            { RestaurantId: restaurantResult.Data.id },
+                        );
                     }
 
                     if (restaurantId !== undefined && restaurantFileType !== undefined &&

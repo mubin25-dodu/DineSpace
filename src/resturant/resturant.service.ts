@@ -247,7 +247,18 @@ export class ResturantService {
     async FindbyID(id: string): Promise<Result<Resturant>> {
         const result = new Result<Resturant>;
         try {
-            const create = await this.Resreo.findOne({ where: { id:id } , relations:{tables:true, files:true, menu:true, logoFile:true, coverFile:true} });
+            const create = await this.Resreo.findOne({
+                where: { id },
+                relations: {
+                    tables: true,
+                    files: true,
+                    menu: {
+                        images: true,
+                    },
+                    logoFile: true,
+                    coverFile: true,
+                },
+            });
             if (create != null) {
                 result.Data = create;
                 result.Message = `Resturant Found`;

@@ -36,11 +36,8 @@ export class ResturantController {
     return  await this.resturantService.getall(req.user);
   }
 
-  @ApiBearerAuth('bearerAuth')
-  @UseGuards(jwtGuard,RolesGuard)
-  @Roles('admin' , "owner")
   @Get("getResturentById/:id")
-  async getById(@Param('id') id:string , @Req() req:any):Promise<Result<Resturant>>{
+  async getById(@Param('id') id:string):Promise<Result<Resturant>>{
     return  await this.resturantService.FindbyID(id);
   }
 
@@ -70,7 +67,7 @@ export class ResturantController {
   
     @ApiBearerAuth('bearerAuth')
     @UseGuards(jwtGuard, RolesGuard)
-    @Roles('owner')
+    @Roles('owner' , 'admin')
     @Delete("DeleteResturant/:Id")
     deletrResturent(@Param("Id") Id:string , @Req() req:any):Promise<Result<null>>{
       return this.resturantService.deleteresturant(req.user , Id);

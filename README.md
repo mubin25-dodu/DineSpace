@@ -24,6 +24,7 @@ Create a `.env` file in the root directory with the following variables:
 DBusername=postgres
 DBpassword=mubindb
 database=DineSpaceDB
+DBtimezone=Asia/Dhaka
 emailhost=smtp.gmail.com
 emailport=587
 emailpass=your_app_password

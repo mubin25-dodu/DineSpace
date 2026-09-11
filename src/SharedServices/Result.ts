@@ -3,4 +3,5 @@ export class Result<Entity>{
     Message?:string;
     Success:boolean = true;
     Token?:string;
+    TotalOrders?:number;
 }

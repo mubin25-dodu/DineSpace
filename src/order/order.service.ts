@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, FindOptionsWhere, Like, Repository, DataSource } from 'typeorm';
+import { Between, FindOptionsWhere, In, Like, Raw, Repository, DataSource } from 'typeorm';
 import { Order } from './Entity/Order.entity';
 import { Result } from 'src/SharedServices/Result';
 import { PlaceorderDto } from './Dto/placeOrder.dto';
@@ -24,6 +24,19 @@ import { AddOnOrderDto } from './Dto/AddOnOrder.dto';
 import { Payment } from 'src/payment/Entity/payment.entity';
 import { MailService } from 'src/mail/mail.service';
 import { ConfigService } from '@nestjs/config';
+import { CheckOrderStatusDto } from './Dto/CheckOrderStatus.dto';
+import { GetOrdersPageQueryDto, GetOrdersQueryDto } from './Dto/GetOrdersQuery.dto';
+
+export interface OrderStatusSummary {
+    id: string;
+    status: OrderStatus;
+    orderedTime: Date;
+    restaurant: {
+        id: string;
+        name: string;
+        address: string;
+    };
+}
 
 @Injectable()
 export class OrderService {
@@ -35,21 +48,147 @@ export class OrderService {
         private readonly dataSource:DataSource,
         private readonly mailService:MailService,
         private readonly configService:ConfigService){}
+
+    async getOrderStatusSummaries(data: CheckOrderStatusDto): Promise<Result<OrderStatusSummary[]>> {
+        const result = new Result<OrderStatusSummary[]>();
+        try {
+            const orders = await this.ordrepo.find({
+                where: { id: In(data.orderIds) },
+                relations: { table: { resturant: true } },
+            });
+
+            const ordersById = new Map(orders.map((order) => [order.id, order]));
+            result.Data = data.orderIds
+                .map((id) => ordersById.get(id))
+                .filter((order): order is Order => order !== undefined && order.table?.resturant !== undefined)
+                .map((order) => ({
+                    id: order.id,
+                    status: order.OrderStatus,
+                    orderedTime: order.OrderTime,
+                    restaurant: {
+                        id: order.table!.resturant!.id,
+                        name: order.table!.resturant!.resturantName,
+                        address: order.table!.resturant!.address,
+                    },
+                }));
+            result.Message = `${result.Data.length} order status summaries found`;
+        } catch (e) {
+            result.Message = String(e);
+            result.Success = false;
+        }
+        return result;
+    }
+
+    async getOrderById(id: string): Promise<Result<Order>> {
+        const result = new Result<Order>();
+        try {
+            const order = await this.ordrepo.findOne({
+                where: { id },
+                relations: {
+                    table: { resturant: true },
+                    orderitems: { menu: { images: true } },
+                    payment: true,
+                },
+            });
+
+            if (!order) {
+                result.Message = 'Order not found';
+                result.Success = false;
+                return result;
+            }
+
+            result.Data = order;
+            result.Message = 'Order found';
+        } catch (e) {
+            result.Message = String(e);
+            result.Success = false;
+        }
+        return result;
+    }
+
+    async getOrdersByFilters(
+        resturantId: string,
+        filters: GetOrdersQueryDto,
+        user: any,
+    ): Promise<Result<Order[]>> {
+        const result = new Result<Order[]>();
+        try {
+            if (user.role !== 'admin') {
+                const restaurant = await this.resrepo.findOne({
+                    where: { id: resturantId, ownerid: user.userId },
+                });
+                if (!restaurant) {
+                    result.Success = false;
+                    result.Message = 'Restaurant not found or access denied';
+                    return result;
+                }
+            }
+
+            const orderWhere: FindOptionsWhere<Order> = {
+                table: { resturantid: resturantId },
+            };
+
+            if (filters.status && filters.status !== 'All' ) {
+                orderWhere.OrderStatus = filters.status;
+            }
+
+            const where: FindOptionsWhere<Order>[] = filters.searchTerm
+                ? [
+                    {
+                        ...orderWhere,
+                        id: Like(`%${filters.searchTerm}%`),
+                    },
+                    {
+                        ...orderWhere,
+                        customerPhone: Raw(
+                            (alias) => `CAST(${alias} AS TEXT) LIKE :searchTerm`,
+                            { searchTerm: `%${filters.searchTerm}%` },
+                        ),
+                    },
+                ]
+                : [orderWhere];
+
+            const orders = await this.ordrepo.find({
+                where,
+                relations: {
+                    orderitems: { menu: true },
+                    table: true,
+                    payment: true,
+                    addOnOrders: { payment: true, addOnOrderItems: { menu: true } },
+                },
+                order: { OrderTime: 'DESC' },
+            });
+
+            result.Data = orders;
+            result.Message = `${orders.length} Orders found`;
+        } catch (e) {
+            result.Message = String(e);
+            result.Success = false;
+        }
+        return result;
+    }
     
-    async getall( id:string , user:any):Promise<Result<Order[]>> {
+    async getall(id:string, pageQuery: GetOrdersPageQueryDto, user:any):Promise<Result<Order[]>> {
             const result = new Result<Order[]>();
             try {
+                const pageSize = 50;
+                const skip = (pageQuery.page - 1) * pageSize;
                 if(user.role == "admin"){
-                    const getresturent = await this.ordrepo.find({ relations: { orderitems: {menu:true} , table:true , payment:true , addOnOrders:{payment:true , addOnOrderItems:{menu:true}} }, where:{table:{
-                    reservationId:id
-                }}});
+                    const [getresturent, totalOrders] = await this.ordrepo.findAndCount({
+                        relations: { orderitems: {menu:true} , table:true , payment:true , addOnOrders:{payment:true , addOnOrderItems:{menu:true}} },
+                        where:{table:{ reservationId:id }},
+                        order: { OrderTime: 'DESC' },
+                        skip,
+                        take: pageSize,
+                    });
                 
-                result.Data = getresturent ?? [];
+                result.Data = getresturent;
+                result.TotalOrders = totalOrders;
                 result.Message = `${getresturent.length} Orders found`;
                 return result;
                 }
 
-                const getresturent = await this.ordrepo.find({
+                const [getresturent, totalOrders] = await this.ordrepo.findAndCount({
                     relations: { orderitems: {menu:true} , table:true , payment:true , addOnOrders:{payment:true , addOnOrderItems:{menu:true}} },
                     where: {
                         table: {
@@ -58,9 +197,12 @@ export class OrderService {
                         },
                     },
                     order: { OrderTime: 'DESC' },
-                });
-               result.Data = getresturent ?? [];
-               result.Message = `${getresturent.length} Orders found`;
+                     skip,
+                     take: pageSize,
+                 });
+                result.Data = getresturent;
+                 result.TotalOrders = totalOrders;
+                result.Message = `${getresturent.length} Orders found`;
             } catch (e) {
                 result.Message = String(e);
                 result.Success = false;
@@ -117,8 +259,9 @@ export class OrderService {
                     });
                 
                 result.Data = getresturent ?? [];
-                result.Message = `${getresturent.length} Orders found`;
-                return result;
+                    result.TotalOrders = getresturent.length;
+                    result.Message = `${getresturent.length} Orders found`;
+                    return result;
                 }
 
                const getresturent = await this.ordrepo.find({
@@ -128,7 +271,8 @@ export class OrderService {
                         ]
                     });
                result.Data = getresturent ?? [];
-               result.Message = `${getresturent.length} Orders found`;
+                    result.TotalOrders = getresturent.length;
+                    result.Message = `${getresturent.length} Orders found`;
             } catch (e) {
                 result.Message = String(e);  
                 result.Success = false;

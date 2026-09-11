@@ -33,6 +33,9 @@ import { join } from "path";
     username: process.env.DBusername,
     password: process.env.DBpassword,
     database: process.env.database,
+    extra: {
+      options: `-c timezone=${process.env.DBtimezone ?? 'Asia/Dhaka'}`,
+    },
     autoLoadEntities:true,
     synchronize:true
   }) , UserModule, ResturantModule, MailModule, VerificationRequestModule, FilesModule, MenuModule, TablesModule, OrderModule, PaymentModule, WalletModule],

@@ -11,6 +11,7 @@ import {
 import { Resturant } from '../../resturant/Entity/Resturant.entity';
 import { Payment } from '../../payment/Entity/payment.entity';
 import { WithdrawalRequest } from './WithdrawalRequest.entity';
+import { WalletTransaction } from './WalletTransaction.entity';
 
 @Entity('wallets')
 export class Wallet {
@@ -34,6 +35,9 @@ export class Wallet {
 
 	@OneToMany(() => WithdrawalRequest, (request) => request.wallet)
 	withdrawalRequests!: WithdrawalRequest[];
+
+	@OneToMany(() => WalletTransaction, (transaction) => transaction.wallet)
+	transactions!: WalletTransaction[];
 
 	@CreateDateColumn()
 	createdAt!: Date;

@@ -9,10 +9,21 @@ import { jwtGuard } from 'src/auth/jwtGuard.guard';
 import { RolesGuard } from 'src/auth/Role/Roles.Guard';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { Roles } from 'src/auth/Role/Roles.decorator';
+import { FakePaymentDto } from './Dto/fake-payment.dto';
 
 @Controller('payment')
 export class PaymentController {
   constructor(private readonly paymentService: PaymentService) {}
+
+  @Post("intent")
+  createIntent(@Body() data:PaymentDto):Promise<Result<Payment>>{
+    return this.paymentService.createPaymentIntent(data);
+  }
+
+  @Post("fake")
+  fakePayment(@Body() data:FakePaymentDto):Promise<Result<Payment>>{
+    return this.paymentService.processFakePayment(data);
+  }
 
 //   @Post("createPayment")
 //   createPayment(@Body() data:PaymentDto):Promise<Result<Payment>>{

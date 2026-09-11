@@ -19,7 +19,7 @@ export class Payment{
     @Column({type:"varchar" , nullable:true})
     transectionId?:string;
 
-    @Column({type:"int" , nullable:true})
+    @Column({type:"varchar" , nullable:true})
     acountNumber!:string;
 
     @Column({type:"decimal", nullable:false , precision: 10,

@@ -4,9 +4,11 @@ import { Payment } from './Entity/payment.entity';
 import { Between, Repository } from 'typeorm';
 import { Result } from 'src/SharedServices/Result';
 import { PaymentDto } from './Dto/payment.dto';
+import { FakePaymentDto } from './Dto/fake-payment.dto';
 import { partialPaymentDto } from './Dto/partialpayment.Dto';
 import { PaymentStatus } from './Enum/PaymentStatus.enum';
 import { paymentMethod } from './Enum/PaymentMethode.enum';
+import { randomUUID } from 'crypto';
 
 @Injectable()
 export class PaymentService {
@@ -130,7 +132,13 @@ export class PaymentService {
                     return result;
                 }
 
-                //mimicing the payment process here
+                if (data.paymentMethode === paymentMethod.Cash) {
+                    result.Success = false;
+                    result.Message = "Fake payment gateway does not process cash payments.";
+                    return result;
+                }
+
+                // Mimic the external gateway without creating a database record.
                 if(Math.random() < 0.1){
                     result.Success = false;
                     result.Message = "Demo Transection failed";
@@ -138,7 +146,7 @@ export class PaymentService {
                 }
 
                 const fakepayment = new Payment();
-                fakepayment.transectionId = `Fake-${Math.random()}`;
+                fakepayment.transectionId = `Fake-${randomUUID()}`;
                 fakepayment.status = PaymentStatus.Paid;
                 fakepayment.paymentMethode = data.paymentMethode;
                 fakepayment.orderId = data.orderId;
@@ -151,5 +159,82 @@ export class PaymentService {
                 result.Success = false;
             }
                 return result;
+    }
+
+    async processFakePayment(data:FakePaymentDto):Promise<Result<Payment>> {
+        try {
+            if (!data.transectionId) {
+                return { Success: false, Message: "Payment intent transaction ID is required" };
+            }
+            const payment = await this.paymentrepo.findOne({
+                where: { transectionId: data.transectionId },
+            });
+            if (!payment) {
+                return { Success: false, Message: "Payment intent was not found" };
+            }
+            if (payment.status !== PaymentStatus.Pending) {
+                return { Success: false, Message: "Payment intent is not pending" };
+            }
+            if (payment.paymentMethode !== data.paymentMethode ||
+                Number(payment.amount) !== Number(data.amount)) {
+                return { Success: false, Message: "Payment intent details do not match" };
+            }
+            if (!data.acountNumber?.trim()) {
+                return { Success: false, Message: "Account or card number is required" };
+            }
+            if (Math.random() < 0.1) {
+                return { Success: false, Message: "Demo transaction failed" };
+            }
+            payment.acountNumber = data.acountNumber.trim();
+            payment.status = PaymentStatus.Paid;
+            return {
+                Success: true,
+                Data: await this.paymentrepo.save(payment),
+                Message: "Fake payment processed",
+            };
+        } catch (e) {
+            return { Success: false, Message: String(e) };
+        }
+    }
+
+    async createPaymentIntent(data:PaymentDto):Promise<Result<Payment>> {
+        const result = new Result<Payment>();
+        try {
+            const amount = Number(data.amount);
+            if (!Number.isFinite(amount) || amount <= 0) {
+                result.Success = false;
+                result.Message = "Payment amount must be a positive number";
+                return result;
+            }
+            if (data.paymentMethode === paymentMethod.Cash) {
+                result.Success = false;
+                result.Message = "Cash payments do not use the fake gateway";
+                return result;
+            }
+            const payment = new Payment();
+            payment.transectionId = `Fake-${randomUUID()}`;
+            payment.status = PaymentStatus.Pending;
+            payment.paymentMethode = data.paymentMethode;
+            payment.amount = Number(amount.toFixed(2));
+            result.Data = await this.paymentrepo.save(payment);
+            result.Message = "Payment intent created";
+        } catch (e) {
+            result.Success = false;
+            result.Message = String(e);
+        }
+        return result;
+    }
+
+    async findSuccessfulTransaction(transectionId:string):Promise<Payment | null> {
+        return this.paymentrepo.findOne({
+            where: {
+                transectionId,
+                status: PaymentStatus.Paid,
+            },
+        });
+    }
+
+    async updatePayment(data:Payment):Promise<Payment> {
+        return this.paymentrepo.save(data);
     }
 }

@@ -4,7 +4,6 @@ import { OrderDto } from "./Order.Dto";
 import { ApiProperty } from "@nestjs/swagger";
 import { IsDefined, IsNotEmpty, IsOptional, ValidateNested } from "class-validator";
 import { Type } from "class-transformer";
-import { Payment } from "src/payment/Entity/payment.entity";
 import { PaymentDto } from "src/payment/Dto/payment.dto";
 
 export class PlaceorderDto {

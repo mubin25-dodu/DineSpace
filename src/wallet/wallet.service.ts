@@ -12,6 +12,8 @@ import { Order } from 'src/order/Entity/Order.entity';
 import { WithdrawalStatus } from './Enum/WithdrawalStatus.enum';
 import { WithdrawalType } from './Enum/WithdrawalType.enum';
 import { OrderStatus } from 'src/order/enum/OrderStatus.enum';
+import { EntityManager } from 'typeorm';
+import { WalletTransaction } from './Entity/WalletTransaction.entity';
 
 @Injectable()
 export class WalletService {
@@ -65,6 +67,47 @@ export class WalletService {
             result.Message = String(e);
             return result;
         }
+    }
+
+    async creditWallet(
+        manager:EntityManager,
+        restaurantId:string,
+        amount:number,
+        payment:Payment,
+    ):Promise<Wallet> {
+        const walletRepo = manager.getRepository(Wallet);
+        const transactionRepo = manager.getRepository(WalletTransaction);
+        const restaurant = await manager.getRepository(Resturant).findOne({
+            where: { id: restaurantId },
+        });
+        if (!restaurant) {
+            throw new Error("Resturant not Found");
+        }
+        const existingCredit = await transactionRepo.findOne({
+            where: { paymentId: payment.id },
+        });
+        if (existingCredit) {
+            return walletRepo.findOneByOrFail({ id: existingCredit.walletId });
+        }
+        let wallet = await walletRepo.findOne({
+            where: { restaurantId },
+            lock: { mode: "pessimistic_write" },
+        });
+        if (!wallet) {
+            wallet = walletRepo.create({ restaurantId, balance: 0 });
+        }
+        wallet.balance = Number(wallet.balance) + amount;
+        wallet = await walletRepo.save(wallet);
+        await transactionRepo.save(transactionRepo.create({
+            walletId: wallet.id,
+            paymentId: payment.id,
+            amount,
+            wallet,
+            payment,
+        }));
+        payment.walletId = wallet.id;
+        await manager.getRepository(Payment).save(payment);
+        return wallet;
     }
 
     async getall(resid:string , userId:string): Promise<Result<Wallet>> {

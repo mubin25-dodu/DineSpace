@@ -1,4 +1,4 @@
-import { IsEnum, IsNotEmpty, IsOptional, IsUUID } from "class-validator";
+import { IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 import { PaymentStatus } from "../Enum/PaymentStatus.enum";
 import { paymentMethod } from "../Enum/PaymentMethode.enum";
@@ -16,6 +16,7 @@ export class PaymentDto {
 
     @IsOptional()
     @ApiProperty({ required: false, example: "1234567890" })
+    @IsString()
     acountNumber?: string;
 
     @IsOptional()

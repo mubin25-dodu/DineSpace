@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, FindOptionsWhere, Like, Repository } from 'typeorm';
+import { Between, FindOptionsWhere, Like, Repository, DataSource } from 'typeorm';
 import { Order } from './Entity/Order.entity';
 import { Result } from 'src/SharedServices/Result';
 import { PlaceorderDto } from './Dto/placeOrder.dto';
@@ -21,6 +21,7 @@ import { WithdrawalRequestDto } from 'src/wallet/Dto/WithdrawalRequest.dto';
 import { WithdrawalType } from 'src/wallet/Enum/WithdrawalType.enum';
 import { AddOnOrder } from './Entity/AddOnOrder.entity';
 import { AddOnOrderDto } from './Dto/AddOnOrder.dto';
+import { Payment } from 'src/payment/Entity/payment.entity';
 
 @Injectable()
 export class OrderService {
@@ -28,7 +29,8 @@ export class OrderService {
         @InjectRepository(Tables) private readonly tablerepo:Repository<Tables>,
         private paymentService:PaymentService ,
         private walletService:WalletService,
-        @InjectRepository(Resturant) private readonly resrepo:Repository<Resturant>){}
+        @InjectRepository(Resturant) private readonly resrepo:Repository<Resturant>,
+        private readonly dataSource:DataSource){}
     
     async getall( id:string , user:any):Promise<Result<Order[]>> {
             const result = new Result<Order[]>();
@@ -288,7 +290,12 @@ export class OrderService {
             const result = new Result<Order>();
             try {
               const orderId = randomUUID();
-              data.payment.orderId = orderId;
+              if (!data.payment) {
+                result.Message = "Payment details are required";
+                result.Success = false;
+                return result;
+              }
+
               data.orderdetails.id  = orderId;
               data.orderdetails.OrderStatus = OrderStatus.Pending;
                             const getresturent = await this.resrepo.findOne({where:{tables:{id:data.orderdetails.tableId} }, relations:{menu:true , tables:true}})
@@ -300,18 +307,13 @@ export class OrderService {
                             }
                 
                             const table = getresturent.tables?.[0];
+                            const tableIsCleaning = table?.status === TableStatus.Cleaning;
 
-                             if(table?.status !== TableStatus.Available){
+                             if(!table || (table.status !== TableStatus.Available && !tableIsCleaning)){
                                 result.Message = `The table is ${table?.status}`;
                                 result.Success = false ;
                                 return result;
                              }
-
-               if(getresturent.payfirst == true && data.payment.paymentMethode === paymentMethod.Card){
-                result.Message = "Go to The Counter to Pay In cash and Order"
-                result.Success = false;
-                return result;
-               }
 
             data.orderdetails.payable = 0;
             const menuItems = getresturent.menu ?? [];
@@ -329,49 +331,112 @@ export class OrderService {
                 data.orderdetails.payable += price;
             }
 
-            data.payment.amount = Number(data.orderdetails.payable.toFixed(2));
-            const makepayment = await this.paymentService.makepayment(data.payment);
-            if(!makepayment.Success){
-                result.Message = makepayment.Message;
-                result.Success = false;
-                return result;
-            }
-            // data.payment.transectionId = makepayment.Data?.transectionId;
-            if(makepayment.Success){
-             data.payment.status = PaymentStatus.Paid;
-             data.payment.transectionId = makepayment.Data?.transectionId;
-            }
-            if(getresturent.payfirst == true && makepayment.Data?.status !== PaymentStatus.Paid){
-                result.Message = "Pay first"
-                result.Success = false;
-                return result;
-            }
+            const payableAmount = Number(data.orderdetails.payable.toFixed(2));
+            data.orderdetails.payable = payableAmount;
+            data.payment.amount = payableAmount;
+            data.payment.orderId = orderId;
 
-             const saveorder = await this.ordrepo.save(data.orderdetails);  
-             const saveorderitems = await this.orditemrepo.save(data.orderitems);
-             const payment = await  this.paymentService.createPayment(data.payment);
-             if(!payment.Success){
-                result.Message = payment.Message;
-                result.Success = false;
-                return result;
-             }
-
-             if (data.payment.status === PaymentStatus.Paid && data.payment.paymentMethode !== paymentMethod.Cash) {
-                const wallet = await this.walletService.addtowallet({
-                    restaurantId: getresturent.id,
-                    balance: data.orderdetails.payable,
-                }, payment.Data);
-                if (!wallet.Success) {
-                    result.Message = wallet.Message;
+            if (data.payment.paymentMethode === paymentMethod.Cash) {
+                data.payment.transectionId = `Cash-${randomUUID()}`;
+                data.payment.status = PaymentStatus.Pending;
+            } else {
+                if (!data.payment.transectionId) {
+                    result.Message = "A fake payment transaction ID is required";
                     result.Success = false;
                     return result;
                 }
+
+                const transaction = await this.paymentService.findSuccessfulTransaction(
+                    data.payment.transectionId,
+                );
+                if (!transaction) {
+                    result.Message = "Payment transaction was not found or was not successful";
+                    result.Success = false;
+                    return result;
+                }
+                if (transaction.orderId) {
+                    result.Message = "Payment transaction has already been used";
+                    result.Success = false;
+                    return result;
+                }
+                if (transaction.paymentMethode !== data.payment.paymentMethode) {
+                    result.Message = "Payment method does not match the transaction";
+                    result.Success = false;
+                    return result;
+                }
+                if (Number(transaction.amount) !== payableAmount) {
+                    result.Message = "Payment amount does not match the order amount";
+                    result.Success = false;
+                    return result;
+                }
+
+                transaction.orderId = orderId;
+                data.payment.acountNumber = transaction.acountNumber;
+                data.payment.status = PaymentStatus.Paid;
+            }
+
+             const queryRunner = this.dataSource.createQueryRunner();
+             await queryRunner.connect();
+             await queryRunner.startTransaction();
+             let saveorder: Order;
+             try {
+                 const paymentRepo = queryRunner.manager.getRepository(Payment);
+                 let payment: Payment | undefined;
+                 let gatewayPayment: Payment | undefined;
+                 if (data.payment.status === PaymentStatus.Paid) {
+                     gatewayPayment = (await paymentRepo.findOne({
+                         where: {
+                             transectionId: data.payment.transectionId,
+                             status: PaymentStatus.Paid,
+                         },
+                         lock: { mode: "pessimistic_write" },
+                     })) ?? undefined;
+                     if (!gatewayPayment || gatewayPayment.orderId) {
+                         throw new Error("Payment transaction is invalid or already used");
+                     }
+                     if (gatewayPayment.paymentMethode !== data.payment.paymentMethode ||
+                         Number(gatewayPayment.amount) !== payableAmount) {
+                         throw new Error("Payment transaction details do not match");
+                     }
+                     gatewayPayment.status = PaymentStatus.Paid;
+                     gatewayPayment.acountNumber =
+                         data.payment.acountNumber ?? gatewayPayment.acountNumber;
+                 }
+
+                 saveorder = await queryRunner.manager.getRepository(Order).save(data.orderdetails);
+                 await queryRunner.manager.getRepository(OrderedItems).save(data.orderitems);
+                 if (gatewayPayment) {
+                     gatewayPayment.orderId = orderId;
+                     payment = await paymentRepo.save(gatewayPayment);
+                 } else {
+                     payment = paymentRepo.create(data.payment);
+                     payment.orderId = orderId;
+                     payment = await paymentRepo.save(payment);
+                 }
+                 if (payment.status === PaymentStatus.Paid) {
+                     await this.walletService.creditWallet(
+                         queryRunner.manager,
+                         getresturent.id,
+                         payableAmount,
+                         payment,
+                     );
+                 }
+                 table.status = TableStatus.Occupied;
+                 await queryRunner.manager.getRepository(Tables).save(table);
+                 await queryRunner.commitTransaction();
+             } catch (e) {
+                 await queryRunner.rollbackTransaction();
+                 throw e;
+             } finally {
+                 await queryRunner.release();
              }
 
-                 table.status = TableStatus.Occupied;
-                 await this.tablerepo.save(table);
              result.Data = saveorder ;
-             result.Message = "Order saved ";
+             result.Message = tableIsCleaning
+                ? "Order accepted. The table is currently being cleaned. Please give us some time to prepare it for you; meanwhile, you can wait in the waiting zone."
+                : data.payment.paymentMethode === paymentMethod.Cash
+                    ? "Order saved. Please go to the counter to pay in cash."
+                    : "Order saved";
             } catch (e) {
                 result.Message = String(e);
                 result.Success = false;

@@ -1,0 +1,21 @@
+Client connects with JWT
+        ↓
+Backend verifies JWT
+        ↓
+Backend stores user in socket.data.user
+        ↓
+Future events can identify the user
+
+
+
+Customer places order
+        ↓
+Order is saved successfully
+        ↓
+Order transaction commits
+        ↓
+Backend finds subscribed restaurant sockets
+        ↓
+Backend emits "newOrder"
+        ↓
+Restaurant frontend receives it

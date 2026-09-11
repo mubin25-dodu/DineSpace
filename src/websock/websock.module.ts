@@ -6,5 +6,6 @@ import { Service } from './websock.service';
 @Module({
   imports: [AuthModule],
   providers: [WebsockGateway, Service],
+  exports :[Service]
 })
 export class WebsockModule {}

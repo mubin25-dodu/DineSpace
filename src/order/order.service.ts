@@ -16,7 +16,6 @@ import { paymentMethod } from 'src/payment/Enum/PaymentMethode.enum';
 import { OrderStatus } from './enum/OrderStatus.enum';
 import { UpdateOrderDto } from './Dto/UpdateOrder';
 import { WalletService } from 'src/wallet/wallet.service';
-import { WithdrawalRequest } from 'src/wallet/Entity/WithdrawalRequest.entity';
 import { WithdrawalRequestDto } from 'src/wallet/Dto/WithdrawalRequest.dto';
 import { WithdrawalType } from 'src/wallet/Enum/WithdrawalType.enum';
 import { AddOnOrder } from './Entity/AddOnOrder.entity';
@@ -26,6 +25,7 @@ import { MailService } from 'src/mail/mail.service';
 import { ConfigService } from '@nestjs/config';
 import { CheckOrderStatusDto } from './Dto/CheckOrderStatus.dto';
 import { GetOrdersPageQueryDto, GetOrdersQueryDto } from './Dto/GetOrdersQuery.dto';
+import { Service } from 'src/websock/websock.service';
 
 export interface OrderStatusSummary {
     id: string;
@@ -47,7 +47,9 @@ export class OrderService {
         @InjectRepository(Resturant) private readonly resrepo:Repository<Resturant>,
         private readonly dataSource:DataSource,
         private readonly mailService:MailService,
-        private readonly configService:ConfigService){}
+        private readonly configService:ConfigService,
+        private readonly websoc:Service
+    ){}
 
     async getOrderStatusSummaries(data: CheckOrderStatusDto): Promise<Result<OrderStatusSummary[]>> {
         const result = new Result<OrderStatusSummary[]>();
@@ -299,7 +301,7 @@ export class OrderService {
                     result.Success = false;
                     return result;
                 }
-                if(data.OrderStatus === OrderStatus.Cancled && order.payment?.status == PaymentStatus.Paid){
+                if(data.OrderStatus === OrderStatus.Cancled && order.payment?.status == PaymentStatus.Paid && order.payment.paymentMethode !== paymentMethod.Cash){
                     const obj:WithdrawalRequestDto = { amount:order.payment.amount , type:WithdrawalType.Refund , paymentMethod:order.payment.paymentMethode , accountNumber:order.payment.acountNumber
                     } 
                     const resp = await this.walletService.applywidthdraw(order.table?.resturantid , user.userId , obj);
@@ -310,7 +312,7 @@ export class OrderService {
                     return result;
                     }
                     if(!resp.Success && resp.Message == "Insufficient balance for withdrawal"){
-                        result.Message = resp.Message;
+                        result.Message = "Refund request failed due to insufficient balance";
                         result.Success = false;
                     return result;
                     }
@@ -614,9 +616,15 @@ export class OrderService {
                          payment,
                      );
                  }
+
                  table.status = TableStatus.Occupied;
                  await queryRunner.manager.getRepository(Tables).save(table);
                  await queryRunner.commitTransaction();
+                 this.websoc.getSubs(
+                    getresturent.id , 'newOrder' , {
+                        orderId:saveorder.id
+                    }
+                 )
              } catch (e) {
                  await queryRunner.rollbackTransaction();
                  throw e;

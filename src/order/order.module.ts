@@ -11,9 +11,10 @@ import { Tables } from 'src/tables/Entity/Tables.entity';
 import { Resturant } from 'src/resturant/Entity/Resturant.entity';
 import { WalletModule } from 'src/wallet/wallet.module';
 import { MailModule } from 'src/mail/mail.module';
+import { WebsockModule } from 'src/websock/websock.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Order, AddOnOrder, OrderedItems, Resturant, Tables]), PaymentModule, WalletModule, MailModule ],
+  imports: [TypeOrmModule.forFeature([Order, AddOnOrder, OrderedItems, Resturant, Tables]), PaymentModule, WalletModule, MailModule , WebsockModule],
   controllers: [OrderController],
   providers: [OrderService],
 })

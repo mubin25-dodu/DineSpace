@@ -40,9 +40,9 @@ export class WalletController {
 
       @ApiBearerAuth('bearerAuth')
       @UseGuards(jwtGuard, RolesGuard)
-      @Roles("owner", "admin")
-      @Post('refund/:orderId')
-      refund(@Param('orderId') orderId:string, @Req() req:any):Promise<Result<WithdrawalRequest>> {
-        return this.walletService.refundOrder(orderId, req.user);
+      @Roles("owner")
+      @Post('refund/:paymentId')
+      refund(@Param('paymentId') paymentId:string, @Req() req:any):Promise<Result<WithdrawalRequest>> {
+        return this.walletService.refundOrder(paymentId, req.user);
       }
 }

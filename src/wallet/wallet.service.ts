@@ -150,7 +150,7 @@ export class WalletService {
                 result.Success = false;
                 return result;
             }
-            else if(getwallet.balance < data.amount){
+            else if((Number(getwallet.balance)) < Number(data.amount)){
                 result.Message = "Insufficient balance for withdrawal";
                 result.Success = false;
                 return result;
@@ -201,11 +201,11 @@ export class WalletService {
         return result;
     }
 
-    async refundOrder(orderId: string, user: any): Promise<Result<WithdrawalRequest>> {
+    async refundOrder(paymentId: string, user: any): Promise<Result<WithdrawalRequest>> {
         const result = new Result<WithdrawalRequest>();
         try {
             const order = await this.orderrepo.findOne({
-                where: { id: orderId },
+                where: { payment: { id: paymentId } },
                 relations: { payment: true, table: { resturant: true } },
             });
 
@@ -227,6 +227,12 @@ export class WalletService {
                 return result;
             }
 
+            if (order.payment.status === PaymentStatus.ProcessingRefund) {
+                result.Success = false;
+                result.Message = 'A refund request is already being processed for this payment';
+                return result;
+            }
+
             if (order.payment.status !== PaymentStatus.Paid) {
                 result.Success = false;
                 result.Message = 'Only paid orders can be refunded';
@@ -241,44 +247,49 @@ export class WalletService {
             }
 
             const payment = order.payment;
-            const refund = await this.walletrepo.manager.transaction(async (manager) => {
-                const walletRepository = manager.getRepository(Wallet);
+            const wallet = await this.walletrepo.findOne({
+                where: { restaurantId: order.table.resturantid },
+            });
+            if (!wallet) {
+                result.Success = false;
+                result.Message = 'Wallet not found';
+                return result;
+            }
+
+            const existingRequest = await this.withdrawalRequestrepo.findOne({
+                where: {
+                    paymentId,
+                    type: WithdrawalType.Refund,
+                    status: WithdrawalStatus.Pending,
+                },
+            });
+            if (existingRequest) {
+                result.Success = false;
+                result.Message = 'A refund request is already pending for this payment';
+                return result;
+            }
+
+            const refundRequest = await this.walletrepo.manager.transaction(async (manager) => {
                 const paymentRepository = manager.getRepository(Payment);
-                const orderRepository = manager.getRepository(Order);
                 const withdrawalRepository = manager.getRepository(WithdrawalRequest);
-                const wallet = await walletRepository.findOne({
-                    where: { restaurantId: order.table!.resturantid },
-                });
 
-                if (!wallet) {
-                    throw new Error('Wallet not found');
-                }
-                if (Number(wallet.balance) < amount) {
-                    throw new Error('Insufficient balance for refund');
-                }
-
-                wallet.balance = Number(wallet.balance) - amount;
-                await walletRepository.save(wallet);
-
-                payment.status = PaymentStatus.Refund;
+                payment.status = PaymentStatus.ProcessingRefund;
                 await paymentRepository.save(payment);
-
-                order.OrderStatus = OrderStatus.Cancled;
-                await orderRepository.save(order);
 
                 return withdrawalRepository.save({
                     walletId: wallet.id,
+                    paymentId,
+                    orderId: order.id,
                     amount,
                     type: WithdrawalType.Refund,
-                    status: WithdrawalStatus.Approved,
+                    status: WithdrawalStatus.Pending,
                     paymentMethod: payment.paymentMethode,
                     accountNumber: String(payment.acountNumber ?? ''),
-                    processedAt: new Date(),
                 });
             });
 
-            result.Data = refund;
-            result.Message = 'Refund issued successfully';
+            result.Data = refundRequest;
+            result.Message = 'Refund request submitted for admin approval';
             return result;
         } catch (e) {
             result.Success = false;

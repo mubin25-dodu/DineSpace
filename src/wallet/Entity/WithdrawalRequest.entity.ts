@@ -19,6 +19,12 @@ export class WithdrawalRequest {
     @Column({ type: "uuid" })
     walletId!: string;
 
+    @Column({ type: "uuid", nullable: true })
+    paymentId!: string;
+
+    @Column({ type: "uuid", nullable: true })
+    orderId!: string;
+
     @ManyToOne(() => Wallet, (wallet) => wallet.withdrawalRequests, {
         nullable: false,
         onDelete: "CASCADE",

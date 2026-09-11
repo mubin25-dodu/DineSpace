@@ -10,9 +10,10 @@ import { TablesModule } from 'src/tables/tables.module';
 import { Tables } from 'src/tables/Entity/Tables.entity';
 import { Resturant } from 'src/resturant/Entity/Resturant.entity';
 import { WalletModule } from 'src/wallet/wallet.module';
+import { MailModule } from 'src/mail/mail.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Order, AddOnOrder, OrderedItems, Resturant, Tables]), PaymentModule, WalletModule ],
+  imports: [TypeOrmModule.forFeature([Order, AddOnOrder, OrderedItems, Resturant, Tables]), PaymentModule, WalletModule, MailModule ],
   controllers: [OrderController],
   providers: [OrderService],
 })

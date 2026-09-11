@@ -22,6 +22,8 @@ import { WithdrawalType } from 'src/wallet/Enum/WithdrawalType.enum';
 import { AddOnOrder } from './Entity/AddOnOrder.entity';
 import { AddOnOrderDto } from './Dto/AddOnOrder.dto';
 import { Payment } from 'src/payment/Entity/payment.entity';
+import { MailService } from 'src/mail/mail.service';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class OrderService {
@@ -30,7 +32,9 @@ export class OrderService {
         private paymentService:PaymentService ,
         private walletService:WalletService,
         @InjectRepository(Resturant) private readonly resrepo:Repository<Resturant>,
-        private readonly dataSource:DataSource){}
+        private readonly dataSource:DataSource,
+        private readonly mailService:MailService,
+        private readonly configService:ConfigService){}
     
     async getall( id:string , user:any):Promise<Result<Order[]>> {
             const result = new Result<Order[]>();
@@ -179,6 +183,49 @@ export class OrderService {
                 result.Success = false;
             }
                return result;
+    }
+
+    private escapeHtml(value:string):string {
+        return value.replace(/[&<>"']/g, (character) => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;',
+        }[character] ?? character));
+    }
+
+    private async sendOrderConfirmation(order:Order, payment:Payment):Promise<string | null> {
+        if (!order.customerEmail) {
+            return "Order created, but no customer email is available for the confirmation";
+        }
+
+        const frontendUrl = this.configService.get<string>('FRONTEND_URL') ?? 'http://localhost:3000';
+        const orderUrl = `${frontendUrl.replace(/\/$/, '')}/user/myorders/${order.id}`;
+        const mailResult = await this.mailService.sendmail({
+            recipients: [order.customerEmail],
+            subject: `Order ${order.id} received`,
+            html: `<p>Hello ${this.escapeHtml(order.customerName)},</p>
+                <p>Thank you for your order. We have received it successfully.</p>
+                <p><strong>Order ID:</strong> ${this.escapeHtml(order.id)}</p>
+                <p><strong>Total:</strong> ${Number(order.payable).toFixed(2)}</p>
+                <p><strong>Payment method:</strong> ${this.escapeHtml(payment.paymentMethode)}</p>
+                <p><strong>Payment status:</strong> ${this.escapeHtml(payment.status)}</p>
+                ${payment.transectionId ? `<p><strong>Transaction ID:</strong> ${this.escapeHtml(payment.transectionId)}</p>` : ''}
+                <p><a href="${this.escapeHtml(orderUrl)}">View your order</a></p>`,
+            text: [
+                `Your order ${order.id} was received.`,
+                `Total: ${Number(order.payable).toFixed(2)}`,
+                `Payment method: ${payment.paymentMethode}`,
+                `Payment status: ${payment.status}`,
+                payment.transectionId ? `Transaction ID: ${payment.transectionId}` : '',
+                `View your order: ${orderUrl}`,
+            ].filter(Boolean),
+        });
+
+        return mailResult.Success
+            ? null
+            : `Order created, but confirmation email could not be sent: ${mailResult.Message}`;
     }
 
     async createAddOnOrder(data:AddOnOrderDto):Promise<Result<AddOnOrder>> {
@@ -379,6 +426,7 @@ export class OrderService {
              await queryRunner.connect();
              await queryRunner.startTransaction();
              let saveorder: Order;
+             let savedPayment: Payment;
              try {
                  const paymentRepo = queryRunner.manager.getRepository(Payment);
                  let payment: Payment | undefined;
@@ -413,6 +461,7 @@ export class OrderService {
                      payment.orderId = orderId;
                      payment = await paymentRepo.save(payment);
                  }
+                 savedPayment = payment;
                  if (payment.status === PaymentStatus.Paid) {
                      await this.walletService.creditWallet(
                          queryRunner.manager,
@@ -437,6 +486,10 @@ export class OrderService {
                 : data.payment.paymentMethode === paymentMethod.Cash
                     ? "Order saved. Please go to the counter to pay in cash."
                     : "Order saved";
+             const emailMessage = await this.sendOrderConfirmation(saveorder, savedPayment);
+             if (emailMessage) {
+                 result.Message = `${result.Message} ${emailMessage}`;
+             }
             } catch (e) {
                 result.Message = String(e);
                 result.Success = false;

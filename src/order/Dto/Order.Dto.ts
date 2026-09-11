@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { OrderStatus } from "../enum/OrderStatus.enum";
-import {IsArray,IsDate,IsEnum,	IsNotEmpty,	isNumber,	IsNumber,IsOptional,IsString,IsUUID,isUUID,ValidateNested} from "class-validator";
+import {IsArray,IsDate,IsEmail,IsEnum,	IsNotEmpty,	isNumber,	IsNumber,	IsOptional,IsString,IsUUID,isUUID,ValidateNested} from "class-validator";
 
 export class OrderDto {
     @ApiProperty()
@@ -35,4 +35,9 @@ export class OrderDto {
     @ApiProperty()
     @IsNotEmpty()        
     customerPhone!:number;       
+
+    @ApiProperty()
+    @IsNotEmpty()
+    @IsEmail()
+    customerEmail!:string;
 }

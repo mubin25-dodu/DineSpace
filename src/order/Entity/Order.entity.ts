@@ -42,6 +42,9 @@ export class Order{
 
     @Column({type:"varchar", nullable:false})
     customerPhone!:number;
+
+    @Column({type:"varchar", nullable:true, length:255})
+    customerEmail?:string;
     
     @OneToOne(() => Payment, (payment) => payment.order)
     payment?: Payment;

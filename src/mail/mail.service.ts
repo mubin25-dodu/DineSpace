@@ -40,7 +40,7 @@ export class MailService {
         }
 
         const sendStart = Date.now();
-        transport.sendMail(options);
+        await transport.sendMail(options);
         console.log('sendMail time', Date.now() - sendStart);
 
         result.Data = "";

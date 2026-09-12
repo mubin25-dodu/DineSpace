@@ -15,10 +15,22 @@ export class Service {
     // finding the resturent and sending the pulse
 
     getSubs(resturantId:string , event:string , payload:unknown):void{
+        const normalizedRestaurantId = String(resturantId);
+        let matched = 0;
         for(const s of this.subscribers.values()){
-            if(s.resturantId === resturantId){
+            if(String(s.resturantId) === normalizedRestaurantId){
                 s.socket.emit(event , payload);
+                matched += 1;
+                console.log(`Event ${event} sent to socket ${s.socketId} for restaurant ${normalizedRestaurantId}`);
             }
+        }
+        if (matched === 0) {
+            console.warn(
+                `No subscribers found for restaurant ${normalizedRestaurantId}. ` +
+                `Active subscriptions: ${Array.from(this.subscribers.values())
+                    .map((subscriber) => subscriber.resturantId)
+                    .join(', ') || 'none'}`,
+            );
         }
     }
 

@@ -63,15 +63,21 @@ export class WebsockGateway implements OnGatewayConnection , OnGatewayDisconnect
 
   @SubscribeMessage('subscribeRestaurant')
  handleSubscribeRestaurant(client: Socket, payload: { resturantId: string }) {
+  if (!client.data.user?.id || !payload?.resturantId) {
+    return {
+      success: false,
+      message: 'User and restaurant are required',
+    };
+  }
 
   const subscriber : WebsocketSubscriber ={
     socketId:client.id,
-    userId: client.data.user.userId,
-    resturantId:payload.resturantId,
+    userId: client.data.user.id,
+    resturantId:String(payload.resturantId),
     socket:client
   }
 
-  console.log(client.data.user);
+  console.log(`Socket ${client.id} subscribed to restaurant ${subscriber.resturantId}`);
   this.websock.addSubs(subscriber);
   return {
   success: true,

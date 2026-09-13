@@ -7,12 +7,36 @@ import { Like, Repository } from 'typeorm';
 import { PartialResturantDto } from './DTO/ParticalResturant.Dto';
 import { use } from 'passport';
 import { WalletService } from 'src/wallet/wallet.service';
+import { Order } from 'src/order/Entity/Order.entity';
+import { OrderStatus } from 'src/order/enum/OrderStatus.enum';
+import { PaymentStatus } from 'src/payment/Enum/PaymentStatus.enum';
+
+export interface RestaurantAnalytics {
+    restaurant: Resturant;
+    totalOrders: number;
+    completedOrders: number;
+    pendingOrders: number;
+    cancelledOrders: number;
+    totalRevenue: number;
+    totalRefunded: number;
+    totalProfit: number;
+    averageOrderValue: number;
+    averageMonthlyProfit: number;
+    monthlyEarnings: Array<{
+        month: string;
+        revenue: number;
+        refunded: number;
+        profit: number;
+        orders: number;
+    }>;
+}
 
 @Injectable()
 export class ResturantService {
 
     constructor(
         @InjectRepository(Resturant) private readonly Resreo: Repository<Resturant>,
+        @InjectRepository(Order) private readonly orderRepo: Repository<Order>,
         private readonly walletService: WalletService,
     ) { }
 
@@ -167,6 +191,123 @@ export class ResturantService {
             result.Message = String(e);
             result.Success = false;
 
+        }
+        return result;
+    }
+
+    async toggleBanById(id: string): Promise<Result<Resturant>> {
+        const result = new Result<Resturant>();
+        try {
+            const restaurant = await this.Resreo.findOne({ where: { id } });
+            if (!restaurant) {
+                result.Success = false;
+                result.Message = "Restaurant not found";
+                return result;
+            }
+
+            restaurant.isBanned = !restaurant.isBanned;
+            result.Data = await this.Resreo.save(restaurant);
+            result.Message = restaurant.isBanned
+                ? "Restaurant banned successfully"
+                : "Restaurant unbanned successfully";
+        } catch (e) {
+            result.Success = false;
+            result.Message = String(e);
+        }
+        return result;
+    }
+
+    async getAdminAnalytics(restaurantId: string): Promise<Result<RestaurantAnalytics>> {
+        const result = new Result<RestaurantAnalytics>();
+        try {
+            const restaurant = await this.Resreo.findOne({ where: { id: restaurantId } });
+            if (!restaurant) {
+                result.Success = false;
+                result.Message = "Restaurant not found";
+                return result;
+            }
+
+            const summaryRows = await this.orderRepo.createQueryBuilder('order_entity')
+                .innerJoin('order_entity.table', 'table_entity')
+                .innerJoin('table_entity.resturant', 'restaurant')
+                .leftJoin('order_entity.payment', 'payment')
+                .select('restaurant.id', 'restaurantId')
+                .addSelect('COUNT(DISTINCT order_entity.id)', 'totalOrders')
+                .addSelect(`COUNT(DISTINCT CASE WHEN order_entity."OrderStatus" = :completed THEN order_entity.id END)`, 'completedOrders')
+                .addSelect(`COUNT(DISTINCT CASE WHEN order_entity."OrderStatus" = :pending THEN order_entity.id END)`, 'pendingOrders')
+                .addSelect(`COUNT(DISTINCT CASE WHEN order_entity."OrderStatus" = :cancelled THEN order_entity.id END)`, 'cancelledOrders')
+                .addSelect(`COALESCE(SUM(CASE WHEN payment.status = :paid THEN payment.amount ELSE 0 END), 0)`, 'totalRevenue')
+                .addSelect(`COALESCE(SUM(CASE WHEN payment.status = :refunded THEN payment.amount ELSE 0 END), 0)`, 'totalRefunded')
+                .setParameters({
+                    completed: OrderStatus.Completed,
+                    pending: OrderStatus.Pending,
+                    cancelled: OrderStatus.Cancled,
+                    paid: PaymentStatus.Paid,
+                    refunded: PaymentStatus.Refund,
+                })
+                .where('restaurant.id = :restaurantId', { restaurantId })
+                .groupBy('restaurant.id')
+                .getRawMany();
+
+            const monthlyRows = await this.orderRepo.createQueryBuilder('order_entity')
+                .innerJoin('order_entity.table', 'table_entity')
+                .innerJoin('table_entity.resturant', 'restaurant')
+                .leftJoin('order_entity.payment', 'payment')
+                .select('restaurant.id', 'restaurantId')
+                .addSelect(`TO_CHAR(DATE_TRUNC('month', order_entity."OrderTime"), 'YYYY-MM')`, 'month')
+                .addSelect('COUNT(DISTINCT order_entity.id)', 'orders')
+                .addSelect(`COALESCE(SUM(CASE WHEN payment.status = :paid THEN payment.amount ELSE 0 END), 0)`, 'revenue')
+                .addSelect(`COALESCE(SUM(CASE WHEN payment.status = :refunded THEN payment.amount ELSE 0 END), 0)`, 'refunded')
+                .setParameters({
+                    paid: PaymentStatus.Paid,
+                    refunded: PaymentStatus.Refund,
+                })
+                .where(`order_entity."OrderTime" >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '11 months'`)
+                .andWhere('restaurant.id = :restaurantId', { restaurantId })
+                .groupBy('restaurant.id')
+                .addGroupBy(`DATE_TRUNC('month', order_entity."OrderTime")`)
+                .orderBy(`DATE_TRUNC('month', order_entity."OrderTime")`, 'ASC')
+                .getRawMany();
+
+            const monthlyByRestaurant = new Map<string, RestaurantAnalytics['monthlyEarnings']>();
+            for (const row of monthlyRows) {
+                const monthlyEarnings = monthlyByRestaurant.get(row.restaurantId) ?? [];
+                const revenue = Number(row.revenue);
+                const refunded = Number(row.refunded);
+                monthlyEarnings.push({
+                    month: row.month,
+                    revenue,
+                    refunded,
+                    profit: revenue - refunded,
+                    orders: Number(row.orders),
+                });
+                monthlyByRestaurant.set(row.restaurantId, monthlyEarnings);
+            }
+
+            const summary = summaryRows[0];
+            const totalOrders = Number(summary?.totalOrders ?? 0);
+            const totalRevenue = Number(summary?.totalRevenue ?? 0);
+            const totalRefunded = Number(summary?.totalRefunded ?? 0);
+            const totalProfit = totalRevenue - totalRefunded;
+            const monthlyEarnings = monthlyByRestaurant.get(restaurant.id) ?? [];
+
+            result.Data = {
+                restaurant,
+                totalOrders,
+                completedOrders: Number(summary?.completedOrders ?? 0),
+                pendingOrders: Number(summary?.pendingOrders ?? 0),
+                cancelledOrders: Number(summary?.cancelledOrders ?? 0),
+                totalRevenue,
+                totalRefunded,
+                totalProfit,
+                averageOrderValue: totalOrders > 0 ? totalRevenue / totalOrders : 0,
+                averageMonthlyProfit: totalProfit / 12,
+                monthlyEarnings,
+            };
+            result.Message = "Restaurant analytics retrieved successfully";
+        } catch (e) {
+            result.Success = false;
+            result.Message = String(e);
         }
         return result;
     }

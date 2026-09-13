@@ -1,6 +1,6 @@
-import { Body, Controller, Delete, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseEnumPipe, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { WalletService } from './wallet.service';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { jwtGuard } from 'src/auth/jwtGuard.guard';
 import { RolesGuard } from 'src/auth/Role/Roles.Guard';
 import { Roles } from 'src/auth/Role/Roles.decorator';
@@ -8,12 +8,36 @@ import { Result } from 'src/SharedServices/Result';
 import { Wallet } from './Entity/wallet.entity';
 import { WithdrawalRequestDto } from './Dto/WithdrawalRequest.dto';
 import { WithdrawalRequest } from './Entity/WithdrawalRequest.entity';
+import { UpdateWithdrawalStatusDto } from './Dto/UpdateWithdrawalStatus.dto';
+import { WithdrawalStatus } from './Enum/WithdrawalStatus.enum';
 
 @Controller('wallet')
 export class WalletController {
   constructor(private readonly walletService: WalletService) {}
 
-  
+      @ApiBearerAuth('bearerAuth')
+      @UseGuards(jwtGuard, RolesGuard)
+      @Roles("admin")
+      @Get('withdrawals')
+      @ApiQuery({ name: "status", enum: WithdrawalStatus, required: false })
+      getWithdrawals(
+        @Query("status", new ParseEnumPipe(WithdrawalStatus, { optional: true }))
+        status?: WithdrawalStatus,
+      ):Promise<Result<WithdrawalRequest[]>> {
+        return this.walletService.getAllWithdrawals(status);
+      }
+
+      @ApiBearerAuth('bearerAuth')
+      @UseGuards(jwtGuard, RolesGuard)
+      @Roles("admin")
+      @Patch('withdrawal/:withdrawalId/status')
+      updateWithdrawalStatus(
+        @Param('withdrawalId') withdrawalId:string,
+        @Body() data:UpdateWithdrawalStatusDto,
+      ):Promise<Result<WithdrawalRequest>> {
+        return this.walletService.updateWithdrawalStatus(withdrawalId, data);
+      }
+
       @ApiBearerAuth('bearerAuth')
       @UseGuards(jwtGuard, RolesGuard)
       @Roles("owner" , "admin")

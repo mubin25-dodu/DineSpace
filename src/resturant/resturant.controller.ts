@@ -1,5 +1,5 @@
-import { BadRequestException, Body, Controller , Delete, Get, Param, ParseFilePipeBuilder, Patch, Post, Put, Req, UploadedFiles, UseGuards, UseInterceptors } from '@nestjs/common';
-import { ResturantService } from './resturant.service';
+import { BadRequestException, Body, Controller , Delete, Get, Param, ParseFilePipeBuilder, ParseUUIDPipe, Patch, Post, Put, Req, UploadedFiles, UseGuards, UseInterceptors } from '@nestjs/common';
+import { RestaurantAnalytics, ResturantService } from './resturant.service';
 import { Result } from 'src/SharedServices/Result';
 import { ResturantDto } from './DTO/Resturant.Dto';
 import { jwtGuard } from 'src/auth/jwtGuard.guard';
@@ -47,6 +47,26 @@ export class ResturantController {
   @Patch("UpdateResturant")
   async Updateresturant( @Req() req:any , @Body() data:PartialResturantDto):Promise<Result<PartialResturantDto>>{
     return  await this.resturantService.Updateresturant(data , req.user);
+  }
+
+  @ApiBearerAuth('bearerAuth')
+  @UseGuards(jwtGuard, RolesGuard)
+  @Roles('admin')
+  @Patch("BanUnbanResturant/:id")
+  async toggleBan(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<Result<Resturant>> {
+    return this.resturantService.toggleBanById(id);
+  }
+
+  @ApiBearerAuth('bearerAuth')
+  @UseGuards(jwtGuard, RolesGuard)
+  @Roles('admin')
+  @Get("AdminAnalytics/:resturentid")
+  async getAdminAnalytics(
+    @Param('resturentid', ParseUUIDPipe) resturentid: string,
+  ): Promise<Result<RestaurantAnalytics>> {
+    return this.resturantService.getAdminAnalytics(resturentid);
   }
 
   //anyone can search with term(name email phone address)

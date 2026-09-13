@@ -143,6 +143,40 @@ Authorization: Bearer <your_jwt_token>
 }
 ```
 
+#### 5. Admin Dashboard (Admin Only)
+Get aggregate system metrics. This endpoint requires a JWT issued to a user whose
+role is `admin`.
+
+```
+GET /admin/dashboard
+Authorization: Bearer <admin-jwt>
+```
+
+**Response:**
+```json
+{
+  "users": { "total": 10, "owners": 9, "admins": 1 },
+  "restaurants": {
+    "total": 8,
+    "open": 6,
+    "closed": 2,
+    "listed": [
+      { "id": "restaurant-id", "name": "DineSpace Cafe", "isOpen": true, "orders": 45 }
+    ]
+  },
+  "orders": { "total": 120, "pending": 7, "completed": 98 },
+  "payments": { "total": 115, "paid": 100, "revenue": 250000 },
+  "monthlyStats": [
+    { "month": "2025-10", "orders": 12, "revenue": 21000 },
+    { "month": "2025-11", "orders": 18, "revenue": 34000 }
+  ]
+}
+```
+
+`monthlyStats` always contains the last 12 months in ascending order and is
+intended for rendering monthly orders and revenue bar charts. Months without
+activity are included with zero values.
+
 ---
 
 ## User Module Endpoints

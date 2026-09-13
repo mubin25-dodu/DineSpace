@@ -25,6 +25,10 @@ export class Resturant {
     @IsBoolean()
     isopen!: boolean;
 
+    @Column({ type: "boolean", default: false })
+    @IsBoolean()
+    isBanned!: boolean;
+
     @Column({ type: "varchar", length: 20 })
     @Matches(/^(?:[01]\d|2[0-3]):[0-5]\d$/ , { message: "Time must be in 24-hour format (e.g., 13:40 or 09:30)." })
     opening!: string;

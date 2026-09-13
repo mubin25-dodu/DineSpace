@@ -14,6 +14,7 @@ import { WithdrawalType } from './Enum/WithdrawalType.enum';
 import { OrderStatus } from 'src/order/enum/OrderStatus.enum';
 import { EntityManager } from 'typeorm';
 import { WalletTransaction } from './Entity/WalletTransaction.entity';
+import { UpdateWithdrawalStatusDto } from './Dto/UpdateWithdrawalStatus.dto';
 
 @Injectable()
 export class WalletService {
@@ -133,6 +134,96 @@ export class WalletService {
             result.Message = String(e);
             return result;
         }
+    }
+
+    async getAllWithdrawals(status?: WithdrawalStatus): Promise<Result<WithdrawalRequest[]>> {
+        const result = new Result<WithdrawalRequest[]>();
+        try {
+            result.Data = await this.withdrawalRequestrepo.find({
+            where: {
+                type: WithdrawalType.Withdraw,
+                ...(status ? { status } : {}),
+            },
+            relations: { wallet: { restaurant: true } },
+            order: { createdAt: "DESC" },
+        });
+            result.Message = status
+                ? `Withdrawal requests with status ${status} retrieved`
+                : "Withdrawal requests retrieved";
+        } catch (e) {
+            result.Success = false;
+            result.Message = String(e);
+        }
+        return result;
+    }
+
+    async updateWithdrawalStatus(
+        withdrawalId: string,
+        data: UpdateWithdrawalStatusDto,
+    ): Promise<Result<WithdrawalRequest>> {
+        const result = new Result<WithdrawalRequest>();
+        try {
+            const withdrawal = await this.withdrawalRequestrepo.manager.transaction(async (manager) => {
+                const withdrawalRepository = manager.getRepository(WithdrawalRequest);
+                const walletRepository = manager.getRepository(Wallet);
+                const paymentRepository = manager.getRepository(Payment);
+
+                const request = await withdrawalRepository.findOne({
+                    where: { id: withdrawalId },
+                    lock: { mode: "pessimistic_write" },
+                });
+                if (!request) {
+                    throw new Error("Withdrawal request not found");
+                }
+                if (request.status !== WithdrawalStatus.Pending) {
+                    throw new Error("Only pending withdrawal requests can be updated");
+                }
+
+                if (data.status === WithdrawalStatus.Approved) {
+                    const wallet = await walletRepository.findOne({
+                        where: { id: request.walletId },
+                        lock: { mode: "pessimistic_write" },
+                    });
+                    if (!wallet) {
+                        throw new Error("Wallet not found");
+                    }
+                    const amount = Number(request.amount);
+                    if (!Number.isFinite(amount) || amount <= 0) {
+                        throw new Error("Withdrawal request has an invalid amount");
+                    }
+                    if (Number(wallet.balance) < amount) {
+                        throw new Error("Insufficient wallet balance for approval");
+                    }
+
+                    wallet.balance = Number(wallet.balance) - amount;
+                    await walletRepository.save(wallet);
+
+                    if (request.type === WithdrawalType.Refund && request.paymentId) {
+                        const payment = await paymentRepository.findOne({
+                            where: { id: request.paymentId },
+                        });
+                        if (payment) {
+                            payment.status = PaymentStatus.Refund;
+                            await paymentRepository.save(payment);
+                        }
+                    }
+                }
+
+                request.status = data.status;
+                request.processedAt = new Date();
+                request.rejectionReason = data.status === WithdrawalStatus.Rejected
+                    ? data.rejectionReason
+                    : undefined;
+                return withdrawalRepository.save(request);
+            });
+
+            result.Data = withdrawal;
+            result.Message = `Withdrawal request ${data.status}`;
+        } catch (e) {
+            result.Success = false;
+            result.Message = String(e).replace(/^Error: /, "");
+        }
+        return result;
     }
 
     async applywidthdraw (resturentId , userId , data): Promise<Result<WithdrawalRequest>>{

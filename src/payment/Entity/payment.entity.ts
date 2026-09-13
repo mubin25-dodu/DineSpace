@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { PaymentStatus } from "../Enum/PaymentStatus.enum";
 import { paymentMethod } from "../Enum/PaymentMethode.enum";
 import { Order } from "src/order/Entity/Order.entity";
@@ -52,4 +52,7 @@ export class Payment{
 
     @Column({type:Date , default: new Date()})
     createdat!:Date;
+
+    @DeleteDateColumn({ nullable: true })
+    deletedAt?: Date;
 }

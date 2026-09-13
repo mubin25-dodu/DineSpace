@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { users } from "src/user/Entity/users.entity";
 import { Resturant } from "src/resturant/Entity/Resturant.entity";
 import { menu } from "src/menu/Entity/menu.entity";
@@ -60,4 +60,7 @@ export class Files {
     })
     @JoinColumn({ name: "MenuId" })
     Menu?: menu;
+
+    @DeleteDateColumn({ nullable: true })
+    deletedAt?: Date;
 }

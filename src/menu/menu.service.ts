@@ -131,7 +131,7 @@ export class MenuService {
                 result.Success = false;
                 return result;
             }
-            result.Data = await this.menurepo.remove(getitem);
+            result.Data = await this.menurepo.softRemove(getitem);
             result.Message = "Success";
            }
            catch(e){

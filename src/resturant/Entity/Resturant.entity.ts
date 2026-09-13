@@ -4,7 +4,7 @@ import { menu } from "src/menu/Entity/menu.entity";
 import { Tables } from "src/tables/Entity/Tables.entity";
 import { users } from "src/user/Entity/users.entity";
 import { Wallet } from "src/wallet/Entity/wallet.entity";
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { OneToOne } from "typeorm";
 
 @Entity("restaurants")
@@ -93,4 +93,7 @@ export class Resturant {
 
     @UpdateDateColumn()
     updated!: Date;
+
+    @DeleteDateColumn({ nullable: true })
+    deletedAt?: Date;
 }

@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryColumn } from "typeorm";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryColumn } from "typeorm";
 import { OrderStatus } from "../enum/OrderStatus.enum";
 import { OrderedItems } from "./OrdredItems.entity";
 import { Tables } from "src/tables/Entity/Tables.entity";
@@ -13,7 +13,10 @@ export class Order{
     @Column({type:"uuid", nullable:false})
     tableId!:string;
 
-    @ManyToOne(() => Tables, (table) => table.orders, { nullable: false })
+    @ManyToOne(() => Tables, (table) => table.orders, {
+        nullable: false,
+        onDelete: "CASCADE",
+    })
     @JoinColumn({ name: "tableId", referencedColumnName: "id" })
     table?: Tables;
 
@@ -51,4 +54,7 @@ export class Order{
 
     @CreateDateColumn()
     OrderTime!:Date;
+
+    @DeleteDateColumn({ nullable: true })
+    deletedAt?: Date;
 }

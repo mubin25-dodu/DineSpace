@@ -286,13 +286,13 @@ export class OrderService {
             try {
                 let order: Order | null;
                 if(user.role == "admin"){
-                    order = await this.ordrepo.findOne({ where: { id: data.id } , relations:{payment:true , table:true}});
+                    order = await this.ordrepo.findOne({ where: { id: data.id } , relations:{payment:true , table:{resturant:true}}});
                 } else {
                     order = await this.ordrepo.findOne({
                         where: {
                             id: data.id,
                             table: { resturant: { ownerid: user.userId } },
-                        },relations:{payment:true , table:true}
+                        },relations:{payment:true , table:{resturant:true}}
                     });
                 }
 
@@ -324,6 +324,12 @@ export class OrderService {
 
                 result.Data = await this.ordrepo.save(data);
                 result.Message = "Order updated";
+                if (data.OrderStatus === OrderStatus.Ready && order.OrderStatus !== OrderStatus.Ready) {
+                    const notificationError = await this.sendOrderReadyNotification(result.Data);
+                    if (notificationError) {
+                        result.Message = `${result.Message}, but ${notificationError}`;
+                    }
+                }
             } catch (e) {
                 result.Message = String(e);  
                 result.Success = false;
@@ -372,6 +378,23 @@ export class OrderService {
         return mailResult.Success
             ? null
             : `Order created, but confirmation email could not be sent: ${mailResult.Message}`;
+    }
+
+    private async sendOrderReadyNotification(order: Order): Promise<string | null> {
+        if (!order.customerEmail) {
+            return "no customer email is available for the ready notification";
+        }
+
+        const mailResult = await this.mailService.sendmail({
+            recipients: [order.customerEmail],
+            subject: `${this.escapeHtml(order.table?.resturant?.resturantName ?? 'Restaurant')} - Order is ready`,
+            html: `<p>Order is ready.</p>`,
+            text: ['Order is ready.'],
+        });
+
+        return mailResult.Success
+            ? null
+            : `the ready notification email could not be sent: ${mailResult.Message}`;
     }
 
     async createAddOnOrder(data:AddOnOrderDto):Promise<Result<AddOnOrder>> {

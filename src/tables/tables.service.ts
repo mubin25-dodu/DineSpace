@@ -144,7 +144,7 @@ export class TablesService {
                 result.Success = false;
                 return result;
             }
-            await this.tablerepo.delete(id);
+            await this.tablerepo.softDelete(id);
             result.Data = isowner.Data;
             result.Message = 'Table deleted successfully';
             result.Success = true;

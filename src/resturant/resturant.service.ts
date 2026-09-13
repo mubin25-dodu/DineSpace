@@ -231,8 +231,8 @@ export class ResturantService {
     try{
         const checkResturantOwner = await this.Resreo.findOne({where:{id:resturantId , ownerid:user.userId}})
         if(checkResturantOwner !==  null){
-            await this.Resreo.remove(checkResturantOwner);
-            result.Message = "Resturant deleted";
+            await this.Resreo.softRemove(checkResturantOwner);
+            result.Message = "Resturant archived";
             return result;
         }
         result.Message ="you are not the owner or wrong resturent Id";

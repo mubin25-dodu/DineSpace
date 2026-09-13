@@ -1,6 +1,6 @@
 import { Files } from "src/files/Entity/Files.Entity";
 import { Resturant } from "src/resturant/Entity/Resturant.entity";
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm"
+import { Column, DeleteDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm"
 
 @Entity()
 export class users {
@@ -21,4 +21,7 @@ export class users {
 
     @OneToMany(() => Files, (file) => file.uploadedByUser)
     files?: Files[];
+
+    @DeleteDateColumn({ nullable: true })
+    deletedAt?: Date;
 }

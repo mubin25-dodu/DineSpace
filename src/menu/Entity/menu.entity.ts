@@ -3,7 +3,7 @@ import { Files } from "src/files/Entity/Files.Entity";
 import { Order } from "src/order/Entity/Order.entity";
 import { OrderedItems } from "src/order/Entity/OrdredItems.entity";
 import { Resturant } from "src/resturant/Entity/Resturant.entity";
-import { Column, Entity, JoinColumn, ManyToMany, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, DeleteDateColumn, Entity, JoinColumn, ManyToMany, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class menu{
@@ -39,6 +39,9 @@ export class menu{
 
     @OneToMany(() => OrderedItems, (orderItem) => orderItem.menu)
     orderItems?: OrderedItems[];
+
+    @DeleteDateColumn({ nullable: true })
+    deletedAt?: Date;
 
 
 }

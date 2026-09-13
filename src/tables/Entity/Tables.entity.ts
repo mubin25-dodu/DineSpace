@@ -1,6 +1,6 @@
 import { Resturant } from 'src/resturant/Entity/Resturant.entity';
 import { Order } from 'src/order/Entity/Order.entity';
-import { Column, Entity, JoinColumn, OneToMany, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
+import { Column, DeleteDateColumn, Entity, JoinColumn, OneToMany, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
 import { TableStatus } from '../Enum/tablestatus.enum';
 
 @Entity('tables')
@@ -32,5 +32,8 @@ export class Tables {
 
   @OneToMany(() => Order, (order) => order.table)
   orders?: Order[];
+
+  @DeleteDateColumn({ nullable: true })
+  deletedAt?: Date;
 
 }

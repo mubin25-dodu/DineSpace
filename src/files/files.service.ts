@@ -114,7 +114,7 @@ async addfiles(
                     }
 
                     if (menuId !== undefined && previousMenuFiles.length > 0) {
-                        await this.filerepo.delete(previousMenuFiles.map((previousFile) => previousFile.id));
+                        await this.filerepo.softDelete(previousMenuFiles.map((previousFile) => previousFile.id));
                         await this.deleteStoredFiles(previousMenuFiles);
                     }
                     result.Data = restaurantId !== undefined
@@ -141,13 +141,12 @@ async deletefile(fileid:string , userId:string):Promise<Result<null>>{
                         result.Success = false
                         return result;
                     }
-                    const deletefile = await this.filerepo.delete({id:fileid});
+                    const deletefile = await this.filerepo.softDelete({id:fileid});
                     if(!deletefile){
                         result.Message = "couldn't delete the file"
                         result.Success = false
                         return result;
                     }
-                    await fs.unlink(savedata[0].Path);
                     result.Message = "file deleted successfully"
                     return result;
                 }

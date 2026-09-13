@@ -188,7 +188,7 @@ export class UserService {
     async deleteuser(user:any):Promise<Result<null>>{
         const result = new Result<null>;
     try{
-        const deleteuser = await this.userrepo.delete(user.userId);
+        const deleteuser = await this.userrepo.softDelete(user.userId);
         if(deleteuser){
             result.Message = "user deleted";
             return result;

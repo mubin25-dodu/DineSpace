@@ -21,6 +21,11 @@ export class AuthController {
     return await this.authService.mailverification(data);
   }
 
+  @Post("test")
+  async a(@Body() data: loginPartialDto):Promise<Result<loginPartialDto>>{
+    return await this.authService.mailverification(data);
+  }
+
   @Post("register/:uid")
   async registeruser(@Param("uid") uid:string,@Body() registration:RegistrationDto):Promise<Result<RegistrationDto>>{
     const register = await this.authService.register( uid , registration);

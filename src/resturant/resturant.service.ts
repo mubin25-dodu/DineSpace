@@ -370,12 +370,18 @@ export class ResturantService {
     async deleteresturant(user:any , resturantId:string):Promise<Result<null>>{
         const result = new Result<null>;
     try{
+        if(resturantId === "816b7497-d05e-4d24-a0b5-aebc62a11184" || resturantId === "1b6b134f-bea3-40eb-b2ba-ad86c28ca101"){
+            result.Message ="This resturent is the default resturent for testing and can not be deleted. If you want to test deletation create one and explore the resturent features";
+            result.Success = false;
+            return result;
+        }
         const checkResturantOwner = await this.Resreo.findOne({where:{id:resturantId , ownerid:user.userId}})
         if(checkResturantOwner !==  null){
             await this.Resreo.softRemove(checkResturantOwner);
             result.Message = "Resturant archived";
             return result;
         }
+        
         result.Message ="you are not the owner or wrong resturent Id";
         result.Success = false;
     }

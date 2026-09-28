@@ -14,11 +14,13 @@ import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
 import { emit } from 'process';
 import { users } from 'src/user/Entity/users.entity';
+import { VerificationRequestService } from 'src/verification-request/verification-request.service';
+import { VerificationType } from 'src/verification-request/Enum/verification-type.enum';
 
 @Injectable()
 export class AuthService {
     constructor( @InjectRepository(varification) private readonly varRepo:Repository<varification> , private jwt:JwtService 
-    ,private readonly mailservice:MailService , private userService: UserService , private ResturantService:ResturantService){}
+    ,private readonly mailservice:MailService , private userService: UserService , private ResturantService:ResturantService , private readonly verificationRequestService: VerificationRequestService){}
 
     async mailverification(data:loginPartialDto) : Promise<Result<loginPartialDto>>{
 
@@ -215,4 +217,50 @@ export class AuthService {
         }
         return result;
     }
-}
+
+    async forgetpassword(email:string): Promise<Result<varification>> {
+        const result = new Result<varification>();
+        try{
+            email = email.toLowerCase();
+            const check = await this.userService.FIndbyemail(email);
+            if(check.Data == null){
+                result.Success = false;
+                result.Message = "No user Found with this email";
+                return result;
+            } 
+            else if( check.Success == false){
+                result.Success = false;
+                result.Message = check.Message;
+                return result;
+            }
+            else if(check.Success == true && check.Data != null){
+                const existingRequest = await this.verificationRequestService.checkexisting(check.Data.id, VerificationType.PASSWORD_RESET);
+                if(existingRequest.Success && existingRequest.Data != null){
+                    result.Success = false;
+                    result.Message = `A password reset request is already pending for this email. wait for some time (1 hour maximum) and request again.`;
+                    return result;
+                }
+                const create = await this.verificationRequestService.createvarification({
+                    userId: check.Data.id,
+                    type: VerificationType.PASSWORD_RESET,
+                    targetValue: email,
+                    currentemail: email,
+                    expiresAt: new Date(Date.now() + 60 * 60 * 1000), // 1 hour from now
+                });
+                if(create.Success){
+                    result.Data = {
+                        email: email,
+                        uid: create.Data?.token || '',
+                        sendAt: new Date(),
+                    };
+                    result.Message = "Password reset request created. Please check your email.";
+                    return result;
+                }
+            }
+        }catch(e){
+            result.Success = false;
+            result.Message = String(e);
+        }
+        return result;
+        }
+    }

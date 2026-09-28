@@ -41,6 +41,12 @@ export class AuthController {
     return register ;
   }
 
+  @Get("forgetpassword/:email")
+  async forgetpassword(@Param("email") email:string):Promise<Result<varification>>{
+    const register = await this.authService.forgetpassword(email);
+    return register ;
+  }
+
  @Post("login")
   async login(@Body() data:loginDto): Promise<string | Result<loginDto | Omit<users, 'password' | 'resturants'>>> {
     // console.log(data)

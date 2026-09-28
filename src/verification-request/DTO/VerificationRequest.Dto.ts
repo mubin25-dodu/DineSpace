@@ -25,9 +25,9 @@ export class CreateVerificationRequestDto {
     @ApiProperty()
   @IsNotEmpty()
   @IsEmail()
-  currentemail!: string;
+  currentemail?: string;
 
-    @ApiProperty()
+  @ApiProperty()
   @IsOptional()
   @IsString()
   expiresAt?: Date;
@@ -35,6 +35,6 @@ export class CreateVerificationRequestDto {
   @IsOptional()
   @IsInt()
   @Min(0)
-    @ApiProperty()
+  @ApiProperty()
   attempts?: number;
 }

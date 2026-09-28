@@ -8,6 +8,7 @@ import { ConfigService } from '@nestjs/config';
 import { MailService } from 'src/mail/mail.service';
 import { randomUUID } from 'crypto';
 import { UserService } from 'src/user/user.service';
+import { VerificationType } from './Enum/verification-type.enum';
 
 @Injectable()
 export class VerificationRequestService {
@@ -31,11 +32,18 @@ async createvarification(data:CreateVerificationRequestDto):Promise<Result<Creat
         }
 
         const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:3000';
-        await this.mailService.sendmail({
+        
+        if(data.type == VerificationType.EMAIL_CHANGE)this.mailService.sendmail({
             recipients:[data.targetValue],
             subject:"Verification Request",
-            html:`<p>Your verification request has been created. Please click the link to verify the mail <br> Your verification request has been created. Please click the link to verify the mail ${frontendUrl}?verification-request/verify/${data.token}</p>`,
-            text:[`Your verification request has been created. Please click the link to verify the mail ${frontendUrl}?verification-request/verify/${data.token}`]
+            html:`<p>Your verification request has been created. Please click the link to verify the mail <br> Your verification request has been created. Please click the link to verify the mail ${frontendUrl}?verification-request/email/${data.token}</p>`,
+            text:[`Your verification request has been created. Please click the link to verify the mail ${frontendUrl}?verification-request/email/${data.token}`]
+        })
+        else if(data.type == VerificationType.PASSWORD_RESET)this.mailService.sendmail({
+            recipients:[data.targetValue],
+            subject:"Verification Request",
+            html:`<p>Your verification request has been created. Please click the link to reset your password <br> Your verification request has been created. Please click the link to reset your password ${frontendUrl}?verification-request/password-reset/${data.token}</p>`,
+            text:[`Your verification request has been created. Please click the link to reset your password ${frontendUrl}?verification-request/password-reset/${data.token}`]
         })
     }
     catch(e){
@@ -47,12 +55,13 @@ async createvarification(data:CreateVerificationRequestDto):Promise<Result<Creat
 
     }
 
-    async verifyToken(token:string):Promise<Result<string | null>>{
+    async verifyToken(token:string):Promise<Result<string | null >>{
     
-        const result = new Result<string | null>();
+        const result = new Result<string | null >();
         
     try{
         const checktoken = await this.repo.findOne({where:{token:token}});
+        
         if(checktoken == null){
             result.Message = "Invalid token";
             result.Success = false;
@@ -98,5 +107,25 @@ async createvarification(data:CreateVerificationRequestDto):Promise<Result<Creat
         return result;
 
     }
-        
+
+    async checkexisting( userId:string , type:VerificationType):Promise<Result<VerificationRequest | null>>{
+        const result = new Result<VerificationRequest | null>();
+        try{
+            const check = await this.repo.findOne({where:{userId:userId , type:type}});
+            if(!check){
+                result.Data = null;
+                result.Message = "No existing verification request";
+                result.Success = true;
+                return result;
+            }
+            result.Data = check;
+            result.Message = "Existing verification request found";
+            result.Success = true;
+            return result;
+        } catch (e) {
+            result.Success = false;
+            result.Message = String(e);
+        }
+        return result;
+    }
 }

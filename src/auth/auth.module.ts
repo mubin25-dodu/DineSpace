@@ -12,13 +12,15 @@ import { PassportModule } from '@nestjs/passport';
 import { jwtGuard } from './jwtGuard.guard';
 import { ConfigService } from '@nestjs/config';
 import { RolesGuard } from './Role/Roles.Guard';
+import { VerificationRequestModule } from 'src/verification-request/verification-request.module';
 
 @Module({
   imports:[
     TypeOrmModule.forFeature([varification]),
     UserModule,
     ResturantModule,
-    PassportModule,
+    PassportModule, 
+    VerificationRequestModule,
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({

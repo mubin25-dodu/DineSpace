@@ -8,7 +8,7 @@ export class VerificationRequestController {
   constructor(private readonly verificationRequestService: VerificationRequestService) {}
 
   @Get("verify/:token")
-  verifyToken(@Param("token") token:string):Promise<Result<string | null>>{
+  verifyToken(@Param("token") token:string):Promise<Result<string | null >>{
     return this.verificationRequestService.verifyToken(token);
   }
 

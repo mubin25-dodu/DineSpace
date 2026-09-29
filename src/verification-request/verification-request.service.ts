@@ -24,6 +24,9 @@ async createvarification(data:CreateVerificationRequestDto):Promise<Result<Creat
     try{
         data.expiresAt = expiresAt;
         data.token = randomUUID();
+        if(data.type == VerificationType.PASSWORD_RESET){
+            data.targetValue == "***";
+        }
         const create = await this.repo.save(data);
         if(!create){
             result.Message = "could not create verification request";
@@ -36,14 +39,14 @@ async createvarification(data:CreateVerificationRequestDto):Promise<Result<Creat
         if(data.type == VerificationType.EMAIL_CHANGE)this.mailService.sendmail({
             recipients:[data.targetValue],
             subject:"Verification Request",
-            html:`<p>Your verification request has been created. Please click the link to verify the mail <br> Your verification request has been created. Please click the link to verify the mail ${frontendUrl}?verification-request/email/${data.token}</p>`,
-            text:[`Your verification request has been created. Please click the link to verify the mail ${frontendUrl}?verification-request/email/${data.token}`]
+            html:`<p>Your verification request has been created. Please click the link to verify the mail <br> Your verification request has been created. Please click the link to verify the mail ${frontendUrl}/verification-request/email/${data.token}</p>`,
+            text:[`Your verification request has been created. Please click the link to verify the mail ${frontendUrl}/verification-request/email/${data.token}`]
         })
         else if(data.type == VerificationType.PASSWORD_RESET)this.mailService.sendmail({
             recipients:[data.targetValue],
             subject:"Verification Request",
-            html:`<p>Your verification request has been created. Please click the link to reset your password <br> Your verification request has been created. Please click the link to reset your password ${frontendUrl}?verification-request/password-reset/${data.token}</p>`,
-            text:[`Your verification request has been created. Please click the link to reset your password ${frontendUrl}?verification-request/password-reset/${data.token}`]
+            html:`<p>Your verification request has been created. Please click the link to reset your password <br> Your verification request has been created. Please click the link to reset your password ${frontendUrl}/verification-request/password-reset/${data.token}</p>`,
+            text:[`Your verification request has been created. Please click the link to reset your password ${frontendUrl}/verification-request/password-reset/${data.token}`]
         })
     }
     catch(e){
@@ -55,13 +58,12 @@ async createvarification(data:CreateVerificationRequestDto):Promise<Result<Creat
 
     }
 
-    async verifyToken(token:string):Promise<Result<string | null >>{
+    async verifyToken(token:string ):Promise<Result<string | null >>{
     
         const result = new Result<string | null >();
         
     try{
         const checktoken = await this.repo.findOne({where:{token:token}});
-        
         if(checktoken == null){
             result.Message = "Invalid token";
             result.Success = false;
@@ -80,25 +82,17 @@ async createvarification(data:CreateVerificationRequestDto):Promise<Result<Creat
             result.Success = false;
             return result;
         }
- 
-    //  EMAIL_CHANGE = 'EMAIL_CHANGE',
-        if(checktoken.type == "EMAIL_CHANGE"){
-            const change = await this.userservice.Updateuser(checktoken.userId , checktoken.targetValue);
-            if (!change.Success){
-                result.Message = change.Message;
-                result.Success = false ;
+        if(checktoken.type == VerificationType.PASSWORD_RESET){
+            const user = await this.userservice.FIndbyid(checktoken.userId);
+            if(!user.Success || !user.Data){
+                result.Message = "User not found";
+                result.Success = false;
                 return result;
             }
-            checktoken.attempts = (checktoken.attempts || 0) + 1;
-            checktoken.usedAt = new Date();
-            await this.repo.save(checktoken);
-            result.Message = "Email changed successfully";
-            return result;
-        }
-    // PHONE_CHANGE = 'PHONE_CHANGE',
-    // EMAIL_VERIFICATION = 'EMAIL_VERIFICATION',
-    // PASSWORD_RESET = 'PASSWORD_RESET',
-        
+            result.Data = user.Data.email;
+            result.Message = "Token verified successfully";
+            result.Success = true;
+        } 
     }
     catch(e){
         result.Message = String(e);
@@ -128,4 +122,59 @@ async createvarification(data:CreateVerificationRequestDto):Promise<Result<Creat
         }
         return result;
     }
+
+    async resetPassword(token:string, password:string):Promise<Result<string | null >>{
+        const result = new Result<string | null >();
+        try{
+        
+            const checktoken = await this.repo.findOne({where:{token:token}});
+        if(checktoken == null){
+            result.Message = "Invalid token";
+            result.Success = false;
+            return result;
+        }
+        if( checktoken.expiresAt && checktoken.expiresAt < new Date()){
+            result.Message = "Token expired";
+            result.Success = false;
+            return result;
+        }if(checktoken.usedAt){
+            result.Message = "Token already used";
+            result.Success = false;
+            return result;
+        }if(checktoken.attempts && checktoken.attempts >= 3){
+            result.Message = "Token attempts exceeded";
+            result.Success = false;
+            return result;
+        }
+            const user = await this.userservice.resetPassword(  password ,checktoken.userId);
+            // await this.repo.update({id:checktoken.id}, {usedAt: new Date()});
+            result.Message = user.Message;
+            result.Success = user.Success;
+            return result;
+
+        } catch (e) {
+            result.Success = false;
+            result.Message = String(e);
+        }
+        return result;
+    }
 }
+    
+
+// EMAIL_CHANGE = 'EMAIL_CHANGE',
+        // if(checktoken.type == VerificationType.EMAIL_CHANGE){
+        //     const change = await this.userservice.Updateuser(checktoken.userId , checktoken.targetValue);
+        //     if (!change.Success){
+        //         result.Message = change.Message;
+        //         result.Success = false ;
+        //         return result;
+        //     }
+        //     checktoken.attempts = (checktoken.attempts || 0) + 1;
+        //     checktoken.usedAt = new Date();
+        //     await this.repo.save(checktoken);
+        //     result.Message = "Email changed successfully";
+        //     return result;
+        // }
+    // PHONE_CHANGE = 'PHONE_CHANGE',
+    // EMAIL_VERIFICATION = 'EMAIL_VERIFICATION',
+    // PASSWORD_RESET = 'PASSWORD_RESET',

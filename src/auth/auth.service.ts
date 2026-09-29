@@ -235,7 +235,7 @@ export class AuthService {
             }
             else if(check.Success == true && check.Data != null){
                 const existingRequest = await this.verificationRequestService.checkexisting(check.Data.id, VerificationType.PASSWORD_RESET);
-                if(existingRequest.Success && existingRequest.Data != null){
+                if(existingRequest.Success && existingRequest.Data != null && existingRequest.Data.expiresAt && existingRequest.Data.expiresAt > new Date()){
                     result.Success = false;
                     result.Message = `A password reset request is already pending for this email. wait for some time (1 hour maximum) and request again.`;
                     return result;

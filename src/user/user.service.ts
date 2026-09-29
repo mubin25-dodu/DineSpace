@@ -67,6 +67,30 @@ export class UserService {
         return result;
     }
 
+    async FIndbyid(id:string):Promise<Result<users>>{
+        const result = new Result<users>;
+    try{
+        const getuser = await this.userrepo.findOne({
+            where:{id:id} , relations:{resturants:true} }
+        );
+        getuser?.password && (getuser.password = "#####");
+        if(getuser){
+            result.Data = getuser;
+            return result;
+        }
+        result.Message ="User not found";
+        result.Success = false;
+    }
+    catch(e){
+        result.Message = String(e);
+        result.Success = false;
+
+    }
+        return result;
+    }
+
+    
+
     async UpdateEmail( user:any,updateuser:PartialUserDto):Promise<Result<PartialUserDto>>{
         const result = new Result<PartialUserDto>();
     try{
@@ -161,7 +185,35 @@ export class UserService {
         return result;
 
     }
-    async Updateuser(id:string , email:string):Promise<Result<users | null>>{
+
+
+    async resetPassword( password:string , uid:string ):Promise<Result<PartialUserDto>>{
+        const result = new Result<PartialUserDto>();
+    try{
+
+        const getuser = await this.userrepo.findOne({where:{id:uid}});
+        if(getuser== null){
+            result.Message = "User not found";
+            result.Success = false;
+            return result;
+        }
+        const hashpassword = await bcrypt.hash(password! , 10);
+        getuser.password = hashpassword;
+
+        await this.userrepo.save(getuser); 
+        result.Message ="password updated";
+        return result;
+    }
+    catch(e){
+        result.Message = String(e);
+        result.Success = false;
+    }
+        return result;
+
+    }
+
+
+    async Updatemail(id:string , email:string):Promise<Result<users | null>>{
          const result = new Result<users | null>;
     try{
         email = email.toLowerCase();

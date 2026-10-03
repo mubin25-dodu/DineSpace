@@ -51,7 +51,6 @@ export class UserService {
         const getuser = await this.userrepo.findOne({
             where:{email:email} , relations:{resturants:true} }
         );
-        getuser?.password && (getuser.password = "#####");
         if(getuser){
             result.Data = getuser;
             return result;
@@ -73,7 +72,6 @@ export class UserService {
         const getuser = await this.userrepo.findOne({
             where:{id:id} , relations:{resturants:true} }
         );
-        getuser?.password && (getuser.password = "#####");
         if(getuser){
             result.Data = getuser;
             return result;

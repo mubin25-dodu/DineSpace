@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, FindOptionsWhere, In, Like, Raw, Repository, DataSource } from 'typeorm';
+import { FindOptionsWhere, In, Like, Raw, Repository, DataSource } from 'typeorm';
 import { Order } from './Entity/Order.entity';
 import { Result } from 'src/SharedServices/Result';
 import { PlaceorderDto } from './Dto/placeOrder.dto';
@@ -215,13 +215,12 @@ export class OrderService {
     async getTodaysorders ( id:string , user:any):Promise<Result<Order[]>> {
             const result = new Result<Order[]>();
             try {
-                const starttime = new Date();
-                starttime.setHours(0 ,0 ,0 ,0);
-
-                const endtime = new Date();
-                endtime.setHours(23 , 59 ,59 ,999);
+                const todayInBangladesh = Raw(
+                    (column) =>
+                        `${column} >= DATE_TRUNC('day', NOW() AT TIME ZONE 'Asia/Dhaka') AND ${column} < DATE_TRUNC('day', NOW() AT TIME ZONE 'Asia/Dhaka') + INTERVAL '1 day'`,
+                );
                 if(user.role == "admin"){
-                    const getresturent = await this.ordrepo.find({relations:{orderitems:{menu:true} , table:true , payment:true , addOnOrders:{payment:true , addOnOrderItems:{menu:true}}} , where:{OrderTime: Between(starttime , endtime) , table:{
+                    const getresturent = await this.ordrepo.find({relations:{orderitems:{menu:true} , table:true , payment:true , addOnOrders:{payment:true , addOnOrderItems:{menu:true}}} , where:{OrderTime: todayInBangladesh , table:{
                     reservationId:id 
                 }}});
                 
@@ -232,7 +231,7 @@ export class OrderService {
 
                 const getresturent = await this.ordrepo.find({
                     relations: { orderitems: {menu:true} , table:true , payment:true , addOnOrders:{payment:true , addOnOrderItems:{menu:true}} },
-                    where: {OrderTime: Between(starttime , endtime),
+                    where: {OrderTime: todayInBangladesh,
                         table: {
                             resturantid: id,
                             resturant: { ownerid: user.userId },
@@ -595,6 +594,7 @@ export class OrderService {
              await queryRunner.connect();
              await queryRunner.startTransaction();
              let saveorder: Order;
+             let savedOrderItems: OrderedItems[];
              let savedPayment: Payment;
              try {
                  const paymentRepo = queryRunner.manager.getRepository(Payment);
@@ -621,7 +621,7 @@ export class OrderService {
                  }
 
                  saveorder = await queryRunner.manager.getRepository(Order).save(data.orderdetails);
-                 await queryRunner.manager.getRepository(OrderedItems).save(data.orderitems);
+                 savedOrderItems = await queryRunner.manager.getRepository(OrderedItems).save(data.orderitems);
                  if (gatewayPayment) {
                      gatewayPayment.orderId = orderId;
                      payment = await paymentRepo.save(gatewayPayment);

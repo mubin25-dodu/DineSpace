@@ -417,7 +417,8 @@ export class ResturantService {
                     "timesOrdered",
                 )
                 .addSelect("SUM(item.quantity)", "totalQuantity")
-                .where("restaurant.id = :id", { id })
+                .where("restaurant.id = :id", { id } )
+                .andWhere("menu.isAvailable = true")
                 .groupBy("menu.id")
                 .orderBy("timesOrdered", "DESC")
                 .limit(4)

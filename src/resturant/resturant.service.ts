@@ -401,13 +401,32 @@ export class ResturantService {
                     files: true,
                     menu: {
                         images: true,
+                        orderItems: true,
                     },
                     logoFile: true,
                     coverFile: true,
                 },
             });
+            const menuTotals = await this.Resreo
+                .createQueryBuilder("restaurant")
+                .innerJoin("restaurant.menu", "menu")
+                .innerJoin("menu.orderItems", "item")
+                .select("menu.id", "menuId")
+                .addSelect(
+                    "COUNT(DISTINCT item.orderId) + COUNT(DISTINCT item.addOnOrderId)",
+                    "timesOrdered",
+                )
+                .addSelect("SUM(item.quantity)", "totalQuantity")
+                .where("restaurant.id = :id", { id })
+                .groupBy("menu.id")
+                .orderBy("timesOrdered", "DESC")
+                .limit(4)
+                .getRawMany();
             if (create != null) {
                 result.Data = create;
+                if (menuTotals.length > 0) {
+                    result.additionalData = menuTotals;
+                }
                 result.Message = `Resturant Found`;
                 return result;
             }

@@ -17,6 +17,8 @@ import { WebsockModule } from './websock/websock.module';
 import { WalletModule } from './wallet/wallet.module';
 import { ServeStaticModule } from "@nestjs/serve-static";
 import { join } from "path";
+import { AnalyticsModule } from './analytics/analytics.module';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [ServeStaticModule.forRoot({
@@ -38,7 +40,14 @@ import { join } from "path";
     },
     autoLoadEntities:true,
     synchronize:true
-  }) , UserModule, ResturantModule, MailModule, VerificationRequestModule, FilesModule, MenuModule, TablesModule, OrderModule, PaymentModule, WalletModule],
+  }),
+  ThrottlerModule.forRoot({
+    throttlers:[{
+      ttl: 1000,
+      limit: 10,
+    }]
+  }) 
+  , UserModule, ResturantModule, MailModule, VerificationRequestModule, FilesModule, MenuModule, TablesModule, OrderModule, PaymentModule, WalletModule, AnalyticsModule],
   
   controllers: [AppController],
   providers: [AppService],

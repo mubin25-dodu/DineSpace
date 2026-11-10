@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Order } from "./Order.entity";
 import { menu } from "src/menu/Entity/menu.entity";
 import { AddOnOrder } from "./AddOnOrder.entity";
@@ -34,4 +34,10 @@ export class OrderedItems{
     @ManyToOne(() => menu, (m) => m.orderItems, { onDelete: "CASCADE" })
     @JoinColumn({name:"itemId"})
     menu!:menu;
+
+    @CreateDateColumn( { default: () => 'CURRENT_TIMESTAMP' })
+    createdAt!:Date;
+
+    @UpdateDateColumn({ default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
+    updatedAt?: Date;
 }
